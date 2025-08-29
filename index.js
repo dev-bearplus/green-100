@@ -100,7 +100,56 @@ const script = () => {
     // customElements.define('header', Header);
 
     const HomePage = {
+        'home-faq-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.animationScrub();
+                this.animationReveal();
+                this.interact();
+            }
+            animationReveal() {
+            }
+            animationScrub() {
+            }
+            interact() {
+                const DOM = {
+                    accordion: $('.accordion'),
+                    accordionTitle: $('.accordion-title'),
+                    accordionContent: $('.accordion-content')
+                }
+                const activeAccordion = (index) => {
+                    DOM.accordionContent.eq(index).slideToggle("slow");
+                    DOM.accordion.eq(index).toggleClass("active");
 
+                    DOM.accordionContent.not(DOM.accordionContent.eq(index)).slideUp("slow");
+                    DOM.accordion.not(DOM.accordion.eq(index)).removeClass("active");
+                }
+                DOM.accordionTitle.on("click", function () {
+                    let index = $(this).parent().index();
+                    activeAccordion(index);
+                })
+                activeAccordion(0);
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        }
     }
     const TermPage = {
         'term-main-wrap': class extends HTMLElement {
@@ -234,6 +283,7 @@ const script = () => {
     }
 
     const pageConfig = {
+        home: HomePage,
         term: TermPage
     };
     const registry = {};
