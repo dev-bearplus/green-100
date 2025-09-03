@@ -49,7 +49,7 @@ const script = () => {
             }
         }));
     }
-
+    let header = document.querySelector('header-component')
     const lenis = new Lenis({
         // wrapper: document.querySelector('.main-inner'),
         // smoothTouch: false,
@@ -61,28 +61,32 @@ const script = () => {
     });
     gsap.ticker.lagSmoothing(0);
     lenis.on('scroll', ScrollTrigger.update)
-    lenis.on('scroll', () => {
+    lenis.on('scroll', (inst) => {
+        header.toggleSticky(inst.scroll >= header.clientHeight)
     })
+    
     const pageName = $('.main-inner').attr('data-barba-namespace');
 
     class Header extends HTMLElement {
         constructor() {
             super();
             this.el = this;
+            this.navEl = this.el.querySelector('.header-act');
+            this.toggle = this.el.querySelector('.header-toggle-btn');
         }
         connectedCallback() {
-            if (window.innerWidth > 991) {
+            if (window.innerWidth > 767) {
                 this.setupDesktop();
                 this.update();
-
             } else {
+                this.el.classList.remove('on-open')
                 this.setupMobile();
             }
 
         }
         setupMobile() {
             console.log('mobile')
-            this.el.querySelector('.header-menu-toggle').addEventListener('click', (e) => {
+            this.toggle.addEventListener('click', (e) => {
                 console.log('click')
                 e.preventDefault();
                 this.toggleMenu();
@@ -91,13 +95,51 @@ const script = () => {
         setupDesktop() {
         }
         toggleSticky(state) {
+            if (state) {
+                header.classList.add('on-scroll')
+            } else {
+                header.classList.remove('on-scroll')
+            }
         }
         update() {
         }
         toggleMenu() {
+            this.el.classList.toggle('on-open');
         }
     }
-    // customElements.define('header', Header);
+    customElements.define('header-component', Header);
+
+    class Popup extends HTMLElement {
+        constructor() {
+            super();
+            this.el = this;
+            this.popup = this.el.querySelector('.popup-wrap')
+            this.toggles = document.querySelectorAll('[data-popup-contact]');
+        }
+        connectedCallback() {
+            this.setup()
+
+        }
+        setup() {
+            console.log('mobile')
+            if (!this.toggles) return;
+            this.toggles.forEach((el) => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    let type = el.getAttribute('data-popup-contact');
+                    this.togglePopup(type);
+                })
+            })
+        }
+        togglePopup(state) {
+            if (state == 'open') {
+                this.popup.classList.add('on-open')
+            } else {
+                this.popup.classList.remove('on-open')
+            }
+        }
+    }
+    customElements.define('popup-component', Popup);
 
     const HomePage = {
         'home-faq-wrap': class extends HTMLElement {
@@ -144,12 +186,112 @@ const script = () => {
                     let index = $(this).parent().index();
                     activeAccordion(index);
                 })
-                activeAccordion(0);
             }
             destroy() {
                 this.tlTrigger.kill();
             }
-        }
+        },
+        'home-partner-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+            interact() {
+                const listElement = this.querySelector('.home-partner-main-list');
+                const innerElement = this.querySelector('.home-partner-main-inner');
+                
+                if (!listElement || !innerElement) return;
+                
+                const cloneCount = Math.ceil(listElement.clientWidth / innerElement.clientWidth) + 1;
+                const allGroups = this.querySelectorAll('.home-partner-main-cms');
+                
+                allGroups.forEach((group, index) => {
+                    const originalList = group.querySelector('.home-partner-main-list');
+                    if (!originalList) return;
+                    
+                    for (let i = 0; i < cloneCount; i++) {
+                        const clonedList = originalList.cloneNode(true);
+                        group.appendChild(clonedList);
+                    }
+                    
+                    const animationClass = index % 2 === 0 ? 'anim-marquee' : 'anim-marquee-revert';
+                    group.querySelectorAll('.home-partner-main-list').forEach(list => {
+                        list.classList.add(animationClass);
+                    });
+                });
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
+        'home-hiw-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.interact();
+            }
+            interact() {
+                let allItems = this.querySelectorAll('.home-hiw-item')
+                allItems.forEach((item) => {
+                    let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(100);
+                    let itemTl = gsap.timeline({
+                        scrollTrigger: {
+                            trigger: item.querySelectorAll('.home-hiw-item-card')[0],
+                            start: 'center center',
+                            endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
+                            end: 'center center',
+                            scrub: true
+                        },
+                        defaults: {
+                            ease: 'none'
+                        }
+                    })
+                    requestAnimationFrame(() => {
+                        itemTl
+                        .to(item.querySelector('.home-hiw-item-img'), {y: dis * (viewport.w > 767 ? .5 : 1), duration: 1})
+                        .to(item.querySelector('.home-hiw-item-main'), {y: dis * (viewport.w > 767 ? .65 : 1), duration: 1}, 0)
+                        .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, scale: .98, duration: 1}, 0)
+                        .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)', duration: 1}, 0)  
+                    })
+                })
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
     }
     const TermPage = {
         'term-main-wrap': class extends HTMLElement {
