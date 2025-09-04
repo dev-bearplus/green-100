@@ -197,17 +197,17 @@ const script = () => {
                 this.tlTrigger = null;
             }
             connectedCallback() {
-                this.tlTrigger = gsap.timeline({
-                    scrollTrigger: {
-                        trigger: this,
-                        start: 'top bottom+=50%',
-                        end: 'bottom top-=50%',
-                        once: true,
-                        onEnter: () => {
-                            this.onTrigger();
-                        }
-                    }
-                });
+                // this.tlTrigger = gsap.timeline({
+                //     scrollTrigger: {
+                //         trigger: this,
+                //         start: 'top bottom+=50%',
+                //         end: 'bottom top-=50%',
+                //         once: true,
+                //         onEnter: () => {
+                //             this.onTrigger();
+                //         }
+                //     }
+                // });
             }
             onTrigger() {
                 if (viewport.w > 767) {
