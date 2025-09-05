@@ -261,9 +261,76 @@ const script = () => {
                 });
             }
             onTrigger() {
-                this.interact();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
             }
             interact() {
+                this.activeIndex = -1;
+                this.allHeadItems = this.querySelectorAll('.home-hiw-head-item')
+                this.allItems = this.querySelectorAll('.home-hiw-body-item');
+
+                let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
+                let topOffset = (window.innerHeight - stickHeight) / 2;
+                gsap.set(this.querySelector('.home-hiw-sticky'), {'top': topOffset})
+                let tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this.querySelector('.home-hiw-main'),
+                        start: `top center-=${stickHeight / 2}`,
+                        end: `bottom center+=${stickHeight / 2}`,
+                        scrub: true,
+                        onUpdate: ((tlPrg) => {
+                            let prog = tlPrg.progress * this.allHeadItems.length;
+                            let index = Math.floor(prog);
+                            if (index < this.allHeadItems.length) {
+                                this.activeHead(index);
+                            }
+                        }).bind(this),
+                    },
+                    defaults: {
+                        ease: 'none'
+                    },
+                })
+                let fadeDur = .75;
+                
+                this.allItems.forEach((item, idx) => {    
+                    let dis = item.querySelectorAll('.home-hiw-item-card')[0].clientHeight + parseRem(8);
+                    let headDis = item.querySelectorAll('.home-hiw-item-card')[0].querySelector('.home-hiw-item-card-top').clientHeight;
+                    
+                    tl
+                    .to(item, {'transform': 'none', duration: fadeDur / 2, ease: 'power1.out'}, idx * (fadeDur + 1))
+                    .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: headDis * -1, scale: .95, duration: 1}, '>=0')
+                    .to(item.querySelectorAll('.home-hiw-item-card')[1], {y: dis * -1, duration: 1,'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)'}, '<=0')
+                    .to(item, {'transform': 'none', duration: fadeDur / 2, ease: 'power1.out'}, '>=0')
+                })
+                this.activeHead(0)
+                this.allHeadItems.forEach((item, idx) => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        let targetProgress = idx / 3;
+                        let scrollTrigger = tl.scrollTrigger;
+                        let startPos = scrollTrigger.start;
+                        let endPos = scrollTrigger.end;
+                        let targetScrollPos = startPos + (endPos - startPos) * targetProgress;
+                        lenis.scrollTo(targetScrollPos, {
+                            immediate: true, 
+                            force: true
+                        });
+                    })
+                })
+            }
+            activeHead(index) {
+                console.log(this.activeIndex == index)
+                if (this.activeIndex == index) return;
+                this.activeIndex = index;
+                this.allHeadItems.forEach((item, idx) => {
+                    item.classList.toggle('active', idx == index);
+                })
+                this.allItems.forEach((item, idx) => {
+                    item.classList.toggle('active', idx == index);
+                })
+            }
+            interactOld() {
                 let allItems = this.querySelectorAll('.home-hiw-item')
                 allItems.forEach((item) => {
                     let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(100);
