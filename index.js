@@ -261,15 +261,16 @@ const script = () => {
                 });
             }
             onTrigger() {
-                if (viewport.w > 767) {
-                    this.interact();
-                }
-            }
-            interact() {
                 this.activeIndex = -1;
                 this.allHeadItems = this.querySelectorAll('.home-hiw-head-item')
                 this.allItems = this.querySelectorAll('.home-hiw-body-item');
-
+                if (viewport.w > 767) {
+                    this.interact();
+                } else {
+                    this.interactMb()
+                }
+            }
+            interact() {
                 let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
                 let topOffset = (window.innerHeight - stickHeight) / 2;
                 gsap.set(this.querySelector('.home-hiw-sticky'), {'top': topOffset})
@@ -319,6 +320,54 @@ const script = () => {
                     })
                 })
             }
+            interactMb() {
+                
+                this.activeHead(0)
+                
+                
+                this.allItems.forEach((item, idx) => {
+                    let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(83);
+                    let itemTl = gsap.timeline({
+                        scrollTrigger: {
+                            trigger: item.querySelectorAll('.home-hiw-item-card')[0],
+                            start: 'center center',
+                            endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
+                            end: 'center center',
+                            scrub: true,
+                        },
+                        defaults: {
+                            ease: 'none'
+                        }
+                    })
+                    requestAnimationFrame(() => {
+                        itemTl
+                        .to(item.querySelector('.home-hiw-body-item-head'), {y: dis * 1, duration: 1})
+                        .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, scale: .98, duration: 1}, 0)
+                        .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -4px 12px 0 rgba(0, 32, 16, 0.08)', duration: 1}, 0)
+                    })
+                    let itemHeadTl = gsap.timeline({
+                        scrollTrigger: {
+                            trigger: item.querySelector('.home-hiw-body-item-head'),
+                            start: `top top+=25%`,
+                            endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
+                            end: 'bottom center',
+                            scrub: true,
+                            onUpdate: () => {
+                                this.activeHead(idx)
+                            }
+                        }
+                    })
+                    this.allHeadItems[idx].addEventListener('click', (e) => {
+                        e.preventDefault();
+                        let scrollTrigger = itemHeadTl.scrollTrigger;
+                        let startPos = scrollTrigger.start + parseRem(10);
+                        lenis.scrollTo(startPos, {
+                            immediate: true, 
+                            force: true
+                        });
+                    })
+                })
+            }
             activeHead(index) {
                 console.log(this.activeIndex == index)
                 if (this.activeIndex == index) return;
@@ -348,7 +397,7 @@ const script = () => {
                     })
                     requestAnimationFrame(() => {
                         itemTl
-                        .to(item.querySelector('.home-hiw-item-img'), {y: dis * (viewport.w > 767 ? .5 : 1), duration: 1})
+                        .to(item.querySelector('.home-hiw-item-img'), {y: dis * 1, duration: 1})
                         .to(item.querySelector('.home-hiw-item-main'), {y: dis * (viewport.w > 767 ? .65 : 1), duration: 1}, 0)
                         .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, scale: .98, duration: 1}, 0)
                         .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)', duration: 1}, 0)  
