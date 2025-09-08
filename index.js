@@ -362,8 +362,7 @@ const script = () => {
                     requestAnimationFrame(() => {
                         itemTl
                         .to(item.querySelector('.home-hiw-body-item-head'), {y: dis * 1, duration: 1})
-                        .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, scale: .98, duration: 1}, 0)
-                        .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -4px 12px 0 rgba(0, 32, 16, 0.08)', duration: 1}, 0)
+                        .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
                     })
                     let itemHeadTl = gsap.timeline({
                         scrollTrigger: {
@@ -397,31 +396,6 @@ const script = () => {
                 })
                 this.allItems.forEach((item, idx) => {
                     item.classList.toggle('active', idx == index);
-                })
-            }
-            interactOld() {
-                let allItems = this.querySelectorAll('.home-hiw-item')
-                allItems.forEach((item) => {
-                    let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(100);
-                    let itemTl = gsap.timeline({
-                        scrollTrigger: {
-                            trigger: item.querySelectorAll('.home-hiw-item-card')[0],
-                            start: 'center center',
-                            endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
-                            end: 'center center',
-                            scrub: true
-                        },
-                        defaults: {
-                            ease: 'none'
-                        }
-                    })
-                    requestAnimationFrame(() => {
-                        itemTl
-                        .to(item.querySelector('.home-hiw-item-img'), {y: dis * 1, duration: 1})
-                        .to(item.querySelector('.home-hiw-item-main'), {y: dis * (viewport.w > 767 ? .65 : 1), duration: 1}, 0)
-                        .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
-                        .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)', duration: 1}, 0)  
-                    })
                 })
             }
             destroy() {
