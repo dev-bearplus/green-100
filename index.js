@@ -320,7 +320,7 @@ const script = () => {
                         let endPos = scrollTrigger.end;
                         let targetScrollPos = (startPos + (endPos - startPos) * targetProgress) + parseRem(10);
                         lenis.scrollTo(targetScrollPos, {
-                            duration: 1,
+                            immediate: true, 
                             force: true
                         });
                     })
