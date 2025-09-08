@@ -278,13 +278,13 @@ const script = () => {
             }
             interact() {
                 let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
-                let topOffset = (window.innerHeight - stickHeight) / 2;
+                let topOffset = (window.innerHeight - stickHeight) * .5;
                 gsap.set(this.querySelector('.home-hiw-sticky'), {'top': topOffset})
                 let tl = gsap.timeline({
                     scrollTrigger: {
                         trigger: this.querySelector('.home-hiw-main'),
-                        start: `top center-=${stickHeight / 2}`,
-                        end: `bottom center+=${stickHeight / 2}`,
+                        start: `top center-=${stickHeight * .5}`,
+                        end: `bottom center+=${stickHeight * .5}`,
                         scrub: true,
                         onUpdate: ((tlPrg) => {
                             let prog = tlPrg.progress * this.allHeadItems.length;
@@ -305,10 +305,10 @@ const script = () => {
                     let headDis = item.querySelectorAll('.home-hiw-item-card')[0].querySelector('.home-hiw-item-card-top').clientHeight;
                     
                     tl
-                    .to(item, {'transform': 'none', duration: fadeDur / 2, ease: 'power1.out'}, idx * (fadeDur + 1))
+                    .to(item, {'transform': 'none', duration: fadeDur, ease: 'power1.out'}, idx * (fadeDur + 1))
                     .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: headDis * -1, scale: .95, duration: 1}, '>=0')
                     .to(item.querySelectorAll('.home-hiw-item-card')[1], {y: dis * -1, duration: 1,'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)'}, '<=0')
-                    .to(item, {'transform': 'none', duration: fadeDur / 2, ease: 'power1.out'}, '>=0')
+                    .to(item, {'transform': 'none', duration: fadeDur, ease: 'power1.out'}, '>=0')
                 })
                 this.activeHead(0)
                 this.allHeadItems.forEach((item, idx) => {
@@ -325,12 +325,26 @@ const script = () => {
                         });
                     })
                 })
+
+                let headerDis = this.querySelector('.home-hiw-main').clientHeight -  this.querySelector('.home-hiw-sticky').clientHeight;
+                console.log(headerDis)
+                let dupTl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this.querySelector('.home-hiw-main'),
+                        start: `top center-=${stickHeight * .5}`,
+                        end: `bottom center+=${stickHeight * .5}`,
+                        scrub: true,
+                    },
+                    defaults: {
+                        ease: 'none'
+                    },
+                })
+                dupTl
+                .to(this.querySelector('.home-hiw-text-wrap'), {y: headerDis, duration: 1})
+                .from(document.querySelector('.home-partner'), {y: headerDis * -1, duration: 1}, 0)
             }
             interactMb() {
-                
                 this.activeHead(0)
-                
-                
                 this.allItems.forEach((item, idx) => {
                     let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(83);
                     let itemTl = gsap.timeline({
