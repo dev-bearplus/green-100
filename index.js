@@ -380,7 +380,7 @@ const script = () => {
                     this.allHeadItems[idx].addEventListener('click', (e) => {
                         e.preventDefault();
                         let scrollTrigger = itemHeadTl.scrollTrigger;
-                        let startPos = scrollTrigger.start + parseRem(108);
+                        let startPos = scrollTrigger.start + parseRem(83);
                         lenis.scrollTo(startPos, {
                             immediate: true, 
                             force: true
