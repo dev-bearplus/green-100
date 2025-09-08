@@ -50,16 +50,16 @@ const script = () => {
         }));
     }
     let header = document.querySelector('header-component')
+    // Initialize Lenis
     const lenis = new Lenis({
-        // wrapper: document.querySelector('.main-inner'),
-        smoothTouch: false,
-    })
-    gsap.ticker.add((time) => {
-        if (lenis) {
-            lenis.raf(time * 1000);
-        }
+        autoRaf: true,
     });
-    gsap.ticker.lagSmoothing(0);
+    // gsap.ticker.add((time) => {
+    //     if (lenis) {
+    //         lenis.raf(time * 1000);
+    //     }
+    // });
+    // gsap.ticker.lagSmoothing(0);
     lenis.on('scroll', ScrollTrigger.update)
     lenis.on('scroll', (inst) => {
         header.toggleSticky(inst.scroll >= header.clientHeight)
@@ -419,7 +419,7 @@ const script = () => {
                         itemTl
                         .to(item.querySelector('.home-hiw-item-img'), {y: dis * 1, duration: 1})
                         .to(item.querySelector('.home-hiw-item-main'), {y: dis * (viewport.w > 767 ? .65 : 1), duration: 1}, 0)
-                        .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, scale: .98, duration: 1}, 0)
+                        .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
                         .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)', duration: 1}, 0)  
                     })
                 })
