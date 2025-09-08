@@ -73,6 +73,7 @@ const script = () => {
             this.el = this;
             this.navEl = this.el.querySelector('.header-act');
             this.toggle = this.el.querySelector('.header-toggle-btn');
+            this.allLinks = this.el.querySelectorAll('.header-link');
         }
         connectedCallback() {
             if (window.innerWidth > 767) {
@@ -85,7 +86,12 @@ const script = () => {
 
         }
         setupMobile() {
-            console.log('mobile')
+            console.log('mobile');
+            this.allLinks.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    this.toggleMenu();
+                })
+            })
             this.toggle.addEventListener('click', (e) => {
                 console.log('click')
                 e.preventDefault();
