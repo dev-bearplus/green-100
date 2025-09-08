@@ -382,7 +382,7 @@ const script = () => {
                         let scrollTrigger = itemHeadTl.scrollTrigger;
                         let startPos = scrollTrigger.start + parseRem(83);
                         lenis.scrollTo(startPos, {
-                            immediate: true, 
+                            duration: 1, 
                             force: true
                         });
                     })
