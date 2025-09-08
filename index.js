@@ -52,7 +52,7 @@ const script = () => {
     let header = document.querySelector('header-component')
     const lenis = new Lenis({
         // wrapper: document.querySelector('.main-inner'),
-        // smoothTouch: false,
+        smoothTouch: false,
     })
     gsap.ticker.add((time) => {
         if (lenis) {
