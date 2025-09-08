@@ -320,7 +320,7 @@ const script = () => {
                         let endPos = scrollTrigger.end;
                         let targetScrollPos = (startPos + (endPos - startPos) * targetProgress) + parseRem(10);
                         lenis.scrollTo(targetScrollPos, {
-                            immediate: true, 
+                            duration: 1,
                             force: true
                         });
                     })
@@ -363,6 +363,7 @@ const script = () => {
                         itemTl
                         .to(item.querySelector('.home-hiw-body-item-head'), {y: dis * 1, duration: 1})
                         .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
+                        .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -4px 12px 0 rgba(0, 32, 16, 0.08)', duration: 1}, 0)
                     })
                     let itemHeadTl = gsap.timeline({
                         scrollTrigger: {
