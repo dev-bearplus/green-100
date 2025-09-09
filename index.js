@@ -346,25 +346,25 @@ const script = () => {
             interactMb() {
                 this.activeHead(0)
                 this.allItems.forEach((item, idx) => {
-                    let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(83);
-                    let itemTl = gsap.timeline({
-                        scrollTrigger: {
-                            trigger: item.querySelectorAll('.home-hiw-item-card')[0],
-                            start: 'center center',
-                            endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
-                            end: 'center center',
-                            scrub: true,
-                        },
-                        defaults: {
-                            ease: 'none'
-                        }
-                    })
-                    requestAnimationFrame(() => {
-                        itemTl
-                        .to(item.querySelector('.home-hiw-body-item-head'), {y: dis * 1, duration: 1})
-                        .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
-                        .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -4px 12px 0 rgba(0, 32, 16, 0.08)', duration: 1}, 0)
-                    })
+                    // let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(83);
+                    // let itemTl = gsap.timeline({
+                    //     scrollTrigger: {
+                    //         trigger: item.querySelectorAll('.home-hiw-item-card')[0],
+                    //         start: 'center center',
+                    //         endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
+                    //         end: 'center center',
+                    //         scrub: true,
+                    //     },
+                    //     defaults: {
+                    //         ease: 'none'
+                    //     }
+                    // })
+                    // requestAnimationFrame(() => {
+                    //     itemTl
+                    //     .to(item.querySelector('.home-hiw-body-item-head'), {y: dis * 1, duration: 1})
+                    //     .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
+                    //     .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -4px 12px 0 rgba(0, 32, 16, 0.08)', duration: 1}, 0)
+                    // })
                     let itemHeadTl = gsap.timeline({
                         scrollTrigger: {
                             trigger: item.querySelector('.home-hiw-body-item-head'),
@@ -379,8 +379,8 @@ const script = () => {
                     })
                     this.allHeadItems[idx].addEventListener('click', (e) => {
                         e.preventDefault();
-                        let scrollTrigger = itemHeadTl.scrollTrigger;
-                        let startPos = scrollTrigger.start + parseRem(83);
+                        let itemOffsetTop = this.allItems[idx].getBoundingClientRect().top + window.scrollY;
+                        let startPos = itemOffsetTop - parseRem(107);
                         lenis.scrollTo(startPos, {
                             duration: 1, 
                             force: true
