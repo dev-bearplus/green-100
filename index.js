@@ -112,12 +112,14 @@ const script = () => {
             })
             this.allFooterLinks.forEach((item, idx) => {
                 item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    let target = item.getAttribute('href').split('#')[1];
-                    lenis.scrollTo('#' + target, {
-                        immediate: true,
-                        force: true
-                    })
+                    if (pageName === 'home') {
+                        e.preventDefault();
+                        let target = item.getAttribute('href').split('#')[1];
+                        lenis.scrollTo('#' + target, {
+                            immediate: true,
+                            force: true
+                        })
+                    }
                 })
             })
         }
