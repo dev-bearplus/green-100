@@ -294,7 +294,6 @@ const script = () => {
                                 this.activeHead(index);
                             }
                         }).bind(this),
-                        markers: true,
                         invalidateOnRefresh: true
                     },
                     defaults: {
