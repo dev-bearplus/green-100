@@ -51,15 +51,13 @@ const script = () => {
     }
     let header = document.querySelector('header-component')
     // Initialize Lenis
-    const lenis = new Lenis({
-        autoRaf: true,
+    const lenis = new Lenis();
+    gsap.ticker.add((time) => {
+        if (lenis) {
+            lenis.raf(time * 1000);
+        }
     });
-    // gsap.ticker.add((time) => {
-    //     if (lenis) {
-    //         lenis.raf(time * 1000);
-    //     }
-    // });
-    // gsap.ticker.lagSmoothing(0);
+    gsap.ticker.lagSmoothing(0);
     lenis.on('scroll', ScrollTrigger.update)
     lenis.on('scroll', (inst) => {
         header.toggleSticky(inst.scroll >= header.clientHeight)
@@ -74,6 +72,7 @@ const script = () => {
             this.navEl = this.el.querySelector('.header-act');
             this.toggle = this.el.querySelector('.header-toggle-btn');
             this.allLinks = this.el.querySelectorAll('.header-link');
+            this.allFooterLinks = document.querySelectorAll('.footer-link[href^="/#"]')
         }
         connectedCallback() {
             if (window.innerWidth > 767) {
@@ -89,7 +88,7 @@ const script = () => {
             console.log('mobile');
             this.allLinks.forEach((item, idx) => {
                 item.addEventListener('click', (e) => {
-                    this.toggleMenu();
+                    this.toggleMenu();                    
                 })
             })
             this.toggle.addEventListener('click', (e) => {
@@ -99,6 +98,28 @@ const script = () => {
             })
         }
         setupDesktop() {
+            this.allLinks.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    if (pageName === 'home') {
+                        e.preventDefault();
+                        let target = item.getAttribute('href').split('#')[1];
+                        lenis.scrollTo('#' + target, {
+                            immediate: true,
+                            force: true
+                        })
+                    }
+                })
+            })
+            this.allFooterLinks.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    let target = item.getAttribute('href').split('#')[1];
+                    lenis.scrollTo('#' + target, {
+                        immediate: true,
+                        force: true
+                    })
+                })
+            })
         }
         toggleSticky(state) {
             if (state) {
