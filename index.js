@@ -277,14 +277,14 @@ const script = () => {
                 }
             }
             interact() {
-                let offsetRatio = .75;
+                let offsetRatio = viewport.w > 991 ? .75 : .85;
                 let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
                 let remainHeight = (window.innerHeight - stickHeight);
                 gsap.set(this.querySelector('.home-hiw-sticky'), {'top': remainHeight * offsetRatio});
                 let tl = gsap.timeline({
                     scrollTrigger: {
                         trigger: this.querySelector('.home-hiw-main'),
-                        start: `top top+=${remainHeight * offsetRatio}`,
+                        start: `top-=${stickHeight} top+=${remainHeight * offsetRatio}`,
                         end: `bottom bottom-=${remainHeight * ( 1 - offsetRatio )}`,
                         scrub: true,
                         onUpdate: ((tlPrg) => {
@@ -294,6 +294,8 @@ const script = () => {
                                 this.activeHead(index);
                             }
                         }).bind(this),
+                        markers: true,
+                        invalidateOnRefresh: true
                     },
                     defaults: {
                         ease: 'none'
@@ -326,29 +328,20 @@ const script = () => {
                         });
                     })
                 })
-
-                let headerDis = this.querySelector('.home-hiw-main').clientHeight -  this.querySelector('.home-hiw-sticky').clientHeight;
-                console.log(headerDis)
-                let dupTl = gsap.timeline({
-                    scrollTrigger: {
-                        trigger: this.querySelector('.home-hiw-main'),
-                        start: `top top+=${remainHeight * offsetRatio}`,
-                        end: `bottom bottom-=${remainHeight * ( 1 - offsetRatio )}`,
-                        scrub: true,
-                        invalidateOnRefresh: true,
-                    },
-                    defaults: {
-                        ease: 'none'
-                    },
-                })
-                dupTl
-                .fromTo(this.querySelector('.home-hiw-text-wrap'),{y: 0}, {y: () => this.querySelector('.home-hiw-main').clientHeight -  this.querySelector('.home-hiw-sticky').clientHeight, duration: 1, ease: 'none'})
-                .fromTo(document.querySelector('.home-partner'), {y: () => (this.querySelector('.home-hiw-main').clientHeight -  this.querySelector('.home-hiw-sticky').clientHeight) * -1}, {y: 0, duration: 1, ease: 'none'}, 0)
-
+                let headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
+                gsap.set('.home-hiw-text-wrap', {'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight})
+                gsap.set('.home-hiw-sticky', {marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1})
                 function updateOnResize() {
-                    headerDis = this.querySelector('.home-hiw-main').clientHeight -  this.querySelector('.home-hiw-sticky').clientHeight;
-                    
+                    offsetRatio = viewport.w > 991 ? .75 : .85;
+                    stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
+                    remainHeight = (window.innerHeight - stickHeight);
+                    gsap.set(this.querySelector('.home-hiw-sticky'), {'top': remainHeight * offsetRatio});
+                    ScrollTrigger.refresh()
+                    headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
+                    gsap.set('.home-hiw-text-wrap', {'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight})
+                    gsap.set('.home-hiw-sticky', {marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1})
                 }
+                $(window).on('resize', updateOnResize.bind(this))
             }
             interactMb() {
                 this.activeHead(0)
