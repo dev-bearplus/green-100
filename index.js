@@ -277,14 +277,15 @@ const script = () => {
                 }
             }
             interact() {
+                let offsetRatio = .75;
                 let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
-                let topOffset = (window.innerHeight - stickHeight) * .5;
-                gsap.set(this.querySelector('.home-hiw-sticky'), {'top': topOffset})
+                let remainHeight = (window.innerHeight - stickHeight);
+                gsap.set(this.querySelector('.home-hiw-sticky'), {'top': remainHeight * offsetRatio});
                 let tl = gsap.timeline({
                     scrollTrigger: {
                         trigger: this.querySelector('.home-hiw-main'),
-                        start: `top center-=${stickHeight * .5}`,
-                        end: `bottom center+=${stickHeight * .5}`,
+                        start: `top top+=${remainHeight * offsetRatio}`,
+                        end: `bottom bottom-=${remainHeight * ( 1 - offsetRatio )}`,
                         scrub: true,
                         onUpdate: ((tlPrg) => {
                             let prog = tlPrg.progress * this.allHeadItems.length;
@@ -331,17 +332,23 @@ const script = () => {
                 let dupTl = gsap.timeline({
                     scrollTrigger: {
                         trigger: this.querySelector('.home-hiw-main'),
-                        start: `top center-=${stickHeight * .5}`,
-                        end: `bottom center+=${stickHeight * .5}`,
+                        start: `top top+=${remainHeight * offsetRatio}`,
+                        end: `bottom bottom-=${remainHeight * ( 1 - offsetRatio )}`,
                         scrub: true,
+                        invalidateOnRefresh: true,
                     },
                     defaults: {
                         ease: 'none'
                     },
                 })
                 dupTl
-                .to(this.querySelector('.home-hiw-text-wrap'), {y: headerDis, duration: 1})
-                .from(document.querySelector('.home-partner'), {y: headerDis * -1, duration: 1}, 0)
+                .fromTo(this.querySelector('.home-hiw-text-wrap'),{y: 0}, {y: () => this.querySelector('.home-hiw-main').clientHeight -  this.querySelector('.home-hiw-sticky').clientHeight, duration: 1, ease: 'none'})
+                .fromTo(document.querySelector('.home-partner'), {y: () => (this.querySelector('.home-hiw-main').clientHeight -  this.querySelector('.home-hiw-sticky').clientHeight) * -1}, {y: 0, duration: 1, ease: 'none'}, 0)
+
+                function updateOnResize() {
+                    headerDis = this.querySelector('.home-hiw-main').clientHeight -  this.querySelector('.home-hiw-sticky').clientHeight;
+                    
+                }
             }
             interactMb() {
                 this.activeHead(0)
