@@ -271,6 +271,58 @@ const script = () => {
                 this.tlTrigger.kill();
             }
         },
+        'home-event-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+            setup() {
+                let swiperEvent = new Swiper(".home-event-cms", {
+                    slidesPerView: 'auto',
+                    spaceBetween: parseRem(8),
+                    navigation: {
+                      prevEl: ".home-event-control-item-prev",
+                      nextEl: ".home-event-control-item-next",
+                    },
+                    pagination: {
+                        el: '.home-event-pagi',
+                        bulletClass: 'home-event-pagi-item',
+                        bulletActiveClass: 'active',
+                        clickable: true,  
+                    },
+                    breakpoints: {
+                        767: {
+                            spaceBetween: parseRem(16),
+                        }
+                    }
+                  });
+            }
+            interact() {
+                
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
         'home-hiw-wrap': class extends HTMLElement {
             constructor() {
                 super();
@@ -518,6 +570,61 @@ const script = () => {
             }
         }
     }
+    const tpEventPage = {
+        'tp-event-blog-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+            
+            setup() {
+                if(viewport.w < 992) {
+                    $('.tp-event-blog-cms').addClass('swiper');
+                    $('.tp-event-blog-list').addClass('swiper-wrapper');
+                    $('.tp-event-blog-item').addClass('swiper-slide');
+                    let swiperBlog = new Swiper(".tp-event-blog-cms", {
+                        slidesPerView: 'auto',
+                        spaceBetween: parseRem(8),
+                        pagination: {
+                            el: '.tp-event-blog-pagi',
+                            bulletClass: 'tp-event-blog-pagi-item',
+                            bulletActiveClass: 'active',
+                            clickable: true,  
+                        },
+                        breakpoints: {
+                            767: {
+                                spaceBetween: parseRem(16),
+                            }
+                        }
+                    });
+                }
+            }
+            interact() {
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        }
+    }
     class PageManager {
         constructor(page) {
             if (!page || typeof page !== 'object') {
@@ -559,6 +666,7 @@ const script = () => {
 
     const pageConfig = {
         home: HomePage,
+        tpEvent: tpEventPage,
         term: TermPage
     };
     const registry = {};
