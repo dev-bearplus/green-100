@@ -853,7 +853,19 @@ const script = () => {
                     });
                 })
 
-                // $(this).find('.part-pled-search-input')
+                $(this).find('.part-pled-search-input').on('input', debounce((e) => {
+                    const searchValue = e.target.value.trim();
+                    this.queryFilter = { ...this.queryFilter, search: searchValue, page: 1 };
+
+                    this.fetchLeaderBoard().then(({ data, pagination }) => {
+                        this.updateData(data);
+                        this.updatePagination(pagination);
+                    }).catch((error) => {
+                        if (error.message !== 'Request already in progress') {
+                            console.error('Failed to fetch leaderboard:', error);
+                        }
+                    });
+                }, 500))
             }
             updateData(data) {
                 $(this).find('.part-pled-table-list').empty();
