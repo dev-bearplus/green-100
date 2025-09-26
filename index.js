@@ -62,7 +62,7 @@ const script = () => {
     lenis.on('scroll', (inst) => {
         header.toggleSticky(inst.scroll >= header.clientHeight)
     })
-    
+
     const pageName = $('.main-inner').attr('data-barba-namespace');
 
     class Header extends HTMLElement {
@@ -85,14 +85,12 @@ const script = () => {
 
         }
         setupMobile() {
-            console.log('mobile');
             this.allLinks.forEach((item, idx) => {
                 item.addEventListener('click', (e) => {
-                    this.toggleMenu();                    
+                    this.toggleMenu();
                 })
             })
             this.toggle.addEventListener('click', (e) => {
-                console.log('click')
                 e.preventDefault();
                 this.toggleMenu();
             })
@@ -150,7 +148,6 @@ const script = () => {
 
         }
         setup() {
-            console.log('mobile')
             if (!this.toggles) return;
             this.toggles.forEach((el) => {
                 el.addEventListener('click', (e) => {
@@ -218,6 +215,11 @@ const script = () => {
             }
             destroy() {
                 this.tlTrigger.kill();
+                // Clean up loading timeout
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
             }
         },
         'home-partner-wrap': class extends HTMLElement {
@@ -246,21 +248,21 @@ const script = () => {
             interact() {
                 const listElement = this.querySelector('.home-partner-main-list');
                 const innerElement = this.querySelector('.home-partner-main-inner');
-                
+
                 if (!listElement || !innerElement) return;
-                
+
                 const cloneCount = Math.ceil(listElement.clientWidth / innerElement.clientWidth) + 1;
                 const allGroups = this.querySelectorAll('.home-partner-main-cms');
-                
+
                 allGroups.forEach((group, index) => {
                     const originalList = group.querySelector('.home-partner-main-list');
                     if (!originalList) return;
-                    
+
                     for (let i = 0; i < cloneCount; i++) {
                         const clonedList = originalList.cloneNode(true);
                         group.appendChild(clonedList);
                     }
-                    
+
                     const animationClass = index % 2 === 0 ? 'anim-marquee' : 'anim-marquee-revert';
                     group.querySelectorAll('.home-partner-main-list').forEach(list => {
                         list.classList.add(animationClass);
@@ -300,24 +302,24 @@ const script = () => {
                     slidesPerView: 'auto',
                     spaceBetween: parseRem(8),
                     navigation: {
-                      prevEl: ".home-event-control-item-prev",
-                      nextEl: ".home-event-control-item-next",
+                        prevEl: ".home-event-control-item-prev",
+                        nextEl: ".home-event-control-item-next",
                     },
                     pagination: {
                         el: '.home-event-pagi',
                         bulletClass: 'home-event-pagi-item',
                         bulletActiveClass: 'active',
-                        clickable: true,  
+                        clickable: true,
                     },
                     breakpoints: {
                         767: {
                             spaceBetween: parseRem(16),
                         }
                     }
-                  });
+                });
             }
             interact() {
-                
+
             }
             destroy() {
                 this.tlTrigger.kill();
@@ -376,11 +378,11 @@ const script = () => {
                     },
                 })
                 let fadeDur = .75;
-                
-                this.allItems.forEach((item, idx) => {    
+
+                this.allItems.forEach((item, idx) => {
                     let dis = item.querySelectorAll('.home-hiw-item-card')[0].clientHeight + parseRem(8);
                     let headDis = item.querySelectorAll('.home-hiw-item-card')[0].querySelector('.home-hiw-item-card-top').clientHeight;
-                    
+
                     tl
                     .to(item, {'transform': 'none', duration: fadeDur, ease: 'power1.out'}, idx * (fadeDur + 1))
                     .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: headDis * -1, scale: .95, duration: 1}, '>=0')
@@ -397,7 +399,7 @@ const script = () => {
                         let endPos = scrollTrigger.end;
                         let targetScrollPos = (startPos + (endPos - startPos) * targetProgress) + parseRem(10);
                         lenis.scrollTo(targetScrollPos, {
-                            immediate: true, 
+                            immediate: true,
                             force: true
                         });
                     })
@@ -456,14 +458,13 @@ const script = () => {
                         let itemOffsetTop = this.allItems[idx].getBoundingClientRect().top + window.scrollY;
                         let startPos = itemOffsetTop - parseRem(107);
                         lenis.scrollTo(startPos, {
-                            duration: 1, 
+                            duration: 1,
                             force: true
                         });
                     })
                 })
             }
             activeHead(index) {
-                console.log(this.activeIndex == index)
                 if (this.activeIndex == index) return;
                 this.activeIndex = index;
                 this.allHeadItems.forEach((item, idx) => {
@@ -595,7 +596,7 @@ const script = () => {
                     this.interact();
                 }
             }
-            
+
             setup() {
                 if(viewport.w < 992) {
                     $('.tp-event-blog-cms').addClass('swiper');
@@ -608,7 +609,7 @@ const script = () => {
                             el: '.tp-event-blog-pagi',
                             bulletClass: 'tp-event-blog-pagi-item',
                             bulletActiveClass: 'active',
-                            clickable: true,  
+                            clickable: true,
                         },
                         breakpoints: {
                             767: {
@@ -619,6 +620,312 @@ const script = () => {
                 }
             }
             interact() {
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        }
+    }
+    const ParticipantPage = {
+        'part-pled-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+                this.rowDOM = $(this).find('.part-pled-table-list .part-pled-table-row').eq(0).clone();
+                this.paginationDOM = $(this).find('.part-pled-table-pagin-list .part-pled-table-pagin-page').eq(0).clone();
+                this.currentPage = 1;
+                this.totalPages = 10;
+                this.isRequestInProgress = false;
+                this.loadingTimeout = null;
+                this.loadingDelay = 300; // Show loading after 300ms
+                this.filter = {
+                    pledge_status: [],
+                    industry: []
+                }
+                this.queryFilter = { type: 'enterprise', limit: 3, page: 1 }
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                this.interact();
+            }
+            setup() {
+            }
+            fetchData(type) {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let url = `https://dev.gprnt.ai/api/v1/cms/${type}`;
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            cache: "force-cache"
+                        }).then((res) => res);
+                        if (response.ok) {
+                            let data = await response.json();
+                            resolve(data);
+                        }
+                        else {
+                            reject(response);
+                        }
+                    }
+                    catch (error) {
+                        reject(error);
+                    }
+                })
+            }
+            async fetchLeaderBoard() {
+                // Prevent multiple simultaneous requests
+                if (this.isRequestInProgress) {
+                    return Promise.reject(new Error('Request already in progress'));
+                }
+                // convert this.queryFilter to urlSearchParam
+                let queryString = new URLSearchParams(this.queryFilter).toString();
+                console.log(queryString)
+
+                this.isRequestInProgress = true;
+
+                // Clear any existing loading timeout
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+
+                // Set timeout to show loading only if request takes longer than delay
+                this.loadingTimeout = setTimeout(() => {
+                    if (this.isRequestInProgress) {
+                        this.isLoading(true);
+                    }
+                }, this.loadingDelay);
+
+                try {
+                    const result = await this.fetchData(`leaderboard?${queryString}`);
+                    // Clear timeout and hide loading after successful fetch
+                    if (this.loadingTimeout) {
+                        clearTimeout(this.loadingTimeout);
+                        this.loadingTimeout = null;
+                    }
+                    this.isLoading(false);
+                    this.isRequestInProgress = false;
+                    $(this).find('.part-pled-table-empty').toggleClass('show', result.data.length === 0);
+                    return result;
+                } catch (error) {
+                    // Clear timeout and hide loading on error
+                    if (this.loadingTimeout) {
+                        clearTimeout(this.loadingTimeout);
+                        this.loadingTimeout = null;
+                    }
+                    this.isLoading(false);
+                    this.isRequestInProgress = false;
+                    throw error;
+                }
+            }
+            async fetchPledge(id) {
+                return await this.fetchData(`pledge?pledge_id=${id}`);
+            }
+            interact() {
+                const dropdownAct = {
+                    open: (target) => {
+                        let dropdown = $(target).parent();
+                        dropdown.addClass('active');
+                        dropdown.siblings().removeClass('active');
+                    },
+                    close: (target) => {
+                        if (target) {
+                            $(target).parent().removeClass('active');
+                        }
+                        else {
+                            $('.part-pled-dropdown').removeClass('active');
+                        }
+                    },
+                    toggle: (target) => {
+                        let dropdown = $(target).parent();
+                        dropdown.toggleClass('active');
+                        dropdown.siblings().removeClass('active');
+                    }
+                }
+                $(this).find('.part-pled-dropdown-toggle').on('click', function (e) {
+                    e.preventDefault();
+                    dropdownAct.toggle(this);
+                })
+                $(this).find('.part-pled-dropdown-link').on('click', (e) => {
+                    e.preventDefault();
+                    let key = $(e.target).closest('.part-pled-dropdown').attr('data-filter');
+
+                    if ($(e.target).hasClass('check-all')) {
+                        if ($(e.target).find('.checkbox-field').hasClass('active')) {
+                            $(e.target).parent().find('.checkbox-field').removeClass('active');
+                        }
+                        else {
+                            $(e.target).parent().find('.checkbox-field').addClass('active');
+                        }
+                    }
+                    else {
+                        $(e.target).find('.checkbox-field').toggleClass('active');
+                        let filter = $(e.target).find('.checkbox-txt .txt').text();
+                        if ($(e.target).find('.checkbox-field').hasClass('active')) {
+                            this.filter[key].push(filter);
+                        }
+                        else {
+                            this.filter[key] = this.filter[key].filter(item => item !== filter);
+                            $(this).find('.part-pled-dropdown-link.check-all .checkbox-field').removeClass('active');
+                        }
+                    }
+
+                    if (this.filter[key].length !== 0) {
+                        this.queryFilter = { ...this.queryFilter, page: 1, [key]: this.filter[key].join(',') };
+                    }
+                    else {
+                        delete this.queryFilter[key];
+                    }
+                    this.fetchLeaderBoard().then(({data, pagination}) => {
+                        this.updateData(data);
+                        this.updatePagination(pagination);
+                    }).catch((error) => {
+                        if (error.message !== 'Request already in progress') {
+                            console.error('Failed to fetch leaderboard:', error);
+                        }
+                    });
+                })
+                $(window).on('click', (e) => {
+                    if (!$(this).find('.part-pled-dropdown-link:hover').length)
+                        if (!$(this).find('.part-pled-dropdown-toggle:hover').length) {
+                            dropdownAct.close();
+                        }
+                })
+
+                $(this).find('.part-pled-tab').on('click', (e) => {
+                    e.preventDefault();
+                    $(e.target).addClass('active').siblings().removeClass('active');
+                    this.queryFilter = { ...this.queryFilter, type: $(e.target).attr('data-type'), page: 1 };
+
+                    this.fetchLeaderBoard().then(({data, pagination}) => {
+                        this.updateData(data);
+                        this.updatePagination(pagination);
+                    }).catch((error) => {
+                        if (error.message !== 'Request already in progress') {
+                            console.error('Failed to fetch leaderboard:', error);
+                        }
+                    });
+                })
+                $(this).find('.part-pled-tab').eq(0).trigger('click');
+
+                $(this).find('.part-pled-table-pagin-arrow').on('click', (e) => {
+                    e.preventDefault();
+                    if ($(e.target).hasClass('prev')) {
+                        this.currentPage--;
+                        if (this.currentPage < 1) {
+                            this.currentPage = 1;
+                        }
+                    }
+                    else {
+                        this.currentPage++;
+                        if (this.currentPage > this.totalPages) {
+                            this.currentPage = this.totalPages;
+                        }
+                    }
+
+                    $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
+                    $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
+                    $(this).find('.part-pled-table-pagin-page').removeClass('active');
+                    $(this).find('.part-pled-table-pagin-page').eq(this.currentPage - 1).addClass('active');
+
+                    this.queryFilter = {  ...this.queryFilter, page: this.currentPage };
+                    this.fetchLeaderBoard().then(({ data }) => {
+                        this.updateData(data);
+                    }).catch((error) => {
+                        if (error.message !== 'Request already in progress') {
+                            console.error('Failed to fetch leaderboard:', error);
+                        }
+                    });
+                })
+
+                // $(this).find('.part-pled-search-input')
+            }
+            updateData(data) {
+                $(this).find('.part-pled-table-list').empty();
+                data.forEach((item) => {
+                    let row = this.rowDOM.clone();
+                    Object.keys(item).forEach((key) => {
+                        if ($(row).find(`[data-value="${key}"]`).length) {
+                            if (key === 'org_id') {
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/${item.pledge_status.toLowerCase()}/${item[key]}`);
+                            }
+                            else if (key === 'website_url') {
+                                if (item[key]) {
+                                    $(row).find(`[data-value="${key}"] .txt`).text(item[key].replace(/^https?:\/\/(www\.)?([^\/]+)/, '$2').replace(/\/$/, ''));
+                                    $(row).find(`[data-value="${key}"] a`).attr('href', item[key]);
+                                }
+                                else {
+                                    $(row).find(`[data-value="${key}"] .txt`).text('-');
+                                }
+                            }
+                            else if (key === 'pledge_date') {
+                                $(row).find(`[data-value="${key}"] .txt`).text(item[key] ? new Date(item[key]).toLocaleDateString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                }) : '-');
+                            }
+                            else {
+                                $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                                if ($(row).find('[data-status]').length) {
+                                    $(row).find('[data-status]').attr('data-status', item[key]);
+                                }
+                            }
+                            $(this).find('.part-pled-table-list').append(row);
+                        }
+                    })
+                })
+            }
+            updatePagination(pagination, query) {
+                this.currentPage = pagination.currentPage;
+                this.totalPages = pagination.totalPages;
+
+                $(this).find('.part-pled-table-pagin-list').empty();
+
+                $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
+                $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
+
+                new Array(pagination.totalPages).fill(0).forEach((item, index) => {
+                    let page = this.paginationDOM.clone();
+                    page.find('.txt').text(index + 1);
+                    page.toggleClass('active', index + 1 === pagination.currentPage);
+                    page.on('click', (e) => {
+                        e.preventDefault();
+                        this.currentPage = index + 1;
+                        this.queryFilter = {  ...this.queryFilter, page: this.currentPage };
+                        this.fetchLeaderBoard().then(({ data }) => {
+                            this.updateData(data);
+                        }).catch((error) => {
+                            if (error.message !== 'Request already in progress') {
+                                console.error('Failed to fetch leaderboard:', error);
+                            }
+                        });
+
+                        $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
+                        $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
+                        page.addClass('active');
+                        page.siblings().removeClass('active');
+                    })
+                    $(this).find('.part-pled-table-pagin-list').append(page);
+                })
+            }
+            isLoading(loading) {
+                $(this).find('.part-pled-table-loading').toggleClass('loading', loading);
             }
             destroy() {
                 this.tlTrigger.kill();
@@ -667,7 +974,8 @@ const script = () => {
     const pageConfig = {
         home: HomePage,
         tpEvent: tpEventPage,
-        term: TermPage
+        term: TermPage,
+        participant: ParticipantPage,
     };
     const registry = {};
     registry[pageName]?.destroy();
