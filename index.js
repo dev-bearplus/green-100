@@ -903,6 +903,48 @@ const script = () => {
                     })
                 })
             }
+            generatePagination(currentPage, totalPages, maxVisible = 5) {
+                const pages = [];
+
+                // Luôn hiển thị trang đầu
+                pages.push(1);
+
+                if (totalPages <= maxVisible) {
+                    // Nếu tổng số trang ít, hiển thị tất cả
+                    for (let i = 2; i <= totalPages; i++) {
+                    pages.push(i);
+                    }
+                } else {
+                    // Logic cho nhiều trang
+                    if (currentPage <= 3) {
+                    // Gần đầu: 1 2 3 ... 8 9
+                    for (let i = 2; i <= 3; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages - 1);
+                    pages.push(totalPages);
+                    }
+                    else if (currentPage >= totalPages - 2) {
+                    // Gần cuối: 1 2 3 ... 7 8 9
+                    pages.push('...');
+                    for (let i = totalPages - 2; i <= totalPages; i++) {
+                        pages.push(i);
+                    }
+                    }
+                    else {
+                    // Ở giữa: 1 ... 4 5 6 ... 9
+                    pages.push('...');
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        pages.push(i);
+                    }
+                    pages.push('...');
+                    pages.push(totalPages);
+                    }
+                }
+
+                return pages;
+            }
             updatePagination(pagination, query) {
                 this.currentPage = pagination.currentPage;
                 this.totalPages = pagination.totalPages;
@@ -912,14 +954,22 @@ const script = () => {
                 $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
                 $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
 
-                new Array(pagination.totalPages).fill(0).forEach((item, index) => {
+                // Sử dụng generatePagination thay vì tạo tất cả các trang
+                const visiblePages = this.generatePagination(this.currentPage, this.totalPages);
+
+                visiblePages.forEach((pageNumber) => {
                     let page = this.paginationDOM.clone();
-                    page.find('.txt').text(index + 1);
-                    page.toggleClass('active', index + 1 === pagination.currentPage);
+                    // console.log(pageNumber)
+                    page.find('.txt').text(pageNumber);
+                    console.log(this.currentPage)
+                    page.toggleClass('active', pageNumber === this.currentPage);
+
+                    // Gắn onclick cho các trang số
                     page.on('click', (e) => {
                         e.preventDefault();
-                        this.currentPage = index + 1;
-                        this.queryFilter = {  ...this.queryFilter, page: this.currentPage };
+                        this.currentPage = pageNumber;
+                        this.queryFilter = { ...this.queryFilter, page: this.currentPage };
+
                         this.fetchLeaderBoard().then(({ data }) => {
                             this.updateData(data);
                         }).catch((error) => {
@@ -928,13 +978,15 @@ const script = () => {
                             }
                         });
 
-                        $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
-                        $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
-                        page.addClass('active');
-                        page.siblings().removeClass('active');
-                    })
+                        // Cập nhật lại pagination sau khi thay đổi trang
+                        this.updatePagination({
+                            currentPage: this.currentPage,
+                            totalPages: this.totalPages
+                        }, query);
+                    });
+
                     $(this).find('.part-pled-table-pagin-list').append(page);
-                })
+                });
             }
             isLoading(loading) {
                 $(this).find('.part-pled-table-loading').toggleClass('loading', loading);
