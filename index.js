@@ -642,7 +642,7 @@ const script = () => {
                     pledge_status: [],
                     industry: []
                 }
-                this.queryFilter = { type: 'enterprise', limit: 3, page: 1 }
+                this.query = { type: 'enterprise', limit: 3, page: 1 }
             }
             connectedCallback() {
                 this.tlTrigger = gsap.timeline({
@@ -692,8 +692,8 @@ const script = () => {
                 if (this.isRequestInProgress) {
                     return Promise.reject(new Error('Request already in progress'));
                 }
-                // convert this.queryFilter to urlSearchParam
-                let queryString = new URLSearchParams(this.queryFilter).toString();
+                // convert this.query to urlSearchParam
+                let queryString = new URLSearchParams(this.query).toString();
                 console.log(queryString)
 
                 this.isRequestInProgress = true;
@@ -786,10 +786,10 @@ const script = () => {
                     }
 
                     if (this.filter[key].length !== 0) {
-                        this.queryFilter = { ...this.queryFilter, page: 1, [key]: this.filter[key].join(',') };
+                        this.query = { ...this.query, page: 1, [key]: this.filter[key].join(',') };
                     }
                     else {
-                        delete this.queryFilter[key];
+                        delete this.query[key];
                     }
                     this.fetchLeaderBoard().then(({data, pagination}) => {
                         this.updateData(data);
@@ -810,7 +810,7 @@ const script = () => {
                 $(this).find('.part-pled-tab').on('click', (e) => {
                     e.preventDefault();
                     $(e.target).addClass('active').siblings().removeClass('active');
-                    this.queryFilter = { ...this.queryFilter, type: $(e.target).attr('data-type'), page: 1 };
+                    this.query = { ...this.query, type: $(e.target).attr('data-type'), page: 1 };
 
                     this.fetchLeaderBoard().then(({data, pagination}) => {
                         this.updateData(data);
@@ -843,7 +843,7 @@ const script = () => {
                     $(this).find('.part-pled-table-pagin-page').removeClass('active');
                     $(this).find('.part-pled-table-pagin-page').eq(this.currentPage - 1).addClass('active');
 
-                    this.queryFilter = {  ...this.queryFilter, page: this.currentPage };
+                    this.query = {  ...this.query, page: this.currentPage };
                     this.fetchLeaderBoard().then(({ data }) => {
                         this.updateData(data);
                     }).catch((error) => {
@@ -855,7 +855,7 @@ const script = () => {
 
                 $(this).find('.part-pled-search-input').on('input', debounce((e) => {
                     const searchValue = e.target.value.trim();
-                    this.queryFilter = { ...this.queryFilter, search: searchValue, page: 1 };
+                    this.query = { ...this.query, search: searchValue, page: 1 };
 
                     this.fetchLeaderBoard().then(({ data, pagination }) => {
                         this.updateData(data);
@@ -968,7 +968,7 @@ const script = () => {
                     page.on('click', (e) => {
                         e.preventDefault();
                         this.currentPage = pageNumber;
-                        this.queryFilter = { ...this.queryFilter, page: this.currentPage };
+                        this.query = { ...this.query, page: this.currentPage };
 
                         this.fetchLeaderBoard().then(({ data }) => {
                             this.updateData(data);
