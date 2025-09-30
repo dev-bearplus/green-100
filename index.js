@@ -1037,10 +1037,7 @@ const script = () => {
             notFound() {
                 history.replaceState({},'',`/404`)
                 $('.notfound-hero-title').text('Not Found')
-                $('title').text('Not Found')
-                $('.sc-notfound-hero').remove()
-                $('.notfound-wrap').removeClass('hidden')
-                $('.sc-notfound').addClass('active')
+                $('.body-inner').removeAttr('data-init-hidden')
                 return;
             }
             getDetail(id) {
@@ -1132,7 +1129,6 @@ const script = () => {
                 },
                 error: (xhr, status, error) => {
                     console.error("Lỗi khi gọi API:", error);
-                    this.notFound();
                 }
                 });
             }
