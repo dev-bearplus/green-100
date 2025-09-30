@@ -873,8 +873,8 @@ const script = () => {
                     let row = this.rowDOM.clone();
                     Object.keys(item).forEach((key) => {
                         if ($(row).find(`[data-value="${key}"]`).length) {
-                            if (key === 'org_id') {
-                                $(row).find(`[data-value="${key}"] a`).attr('href', `/${item.pledge_status.toLowerCase()}/${item[key]}`);
+                             if (key === 'pledge_id') {
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/participants/${item[key]}`);
                             }
                             else if (key === 'website_url') {
                                 if (item[key]) {
@@ -996,6 +996,170 @@ const script = () => {
             }
         }
     }
+    const notFoundPage = {
+       'not-found-hero-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                this.checkRedirect();
+            }
+            checkRedirect() {
+                let url = window.location.pathname;
+                if (url.includes('/participants/')) {
+                    console.log('in side');
+                    const pathParts = window.location.pathname.split("/").filter(Boolean);
+                    const pledgeId = pathParts[pathParts.length - 1];
+                    this.getDetail(pledgeId);
+                }
+                else {
+                    this.notFound();
+                    return;
+                }
+            }
+            notFound() {
+                history.replaceState({},'',`/404`)
+                $('.notfound-hero-title').text('Not Found')
+                $('title').text('Not Found')
+                $('.sc-notfound-hero').remove()
+                $('.notfound-wrap').removeClass('hidden')
+                $('.sc-notfound').addClass('active')
+                return;
+            }
+            getDetail(id) {
+                $.ajax({
+                url: 'https://dev.gprnt.ai/api/v1/cms/pledge',
+                method: "GET",
+                data: { pledge_id: id },
+                success: (data) => {
+                    window.location.href = `/participants?id=${id}`;
+                },
+                error: (xhr, status, error) => {
+                    console.error("Lỗi khi gọi API:", error);
+                    this.notFound();
+                }
+                });
+            }
+            destroy() {
+                this.tlTrigger.kill();
+                // Clean up loading timeout
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
+    }
+    const ParticipantDetailPage = {
+       'part-dl-hero-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                let url = window.location.pathname;
+                const urlParams = new URLSearchParams(window.location.search);
+                const pledgeId = urlParams.get("id");
+                if (pledgeId) {
+                    const newUrl = `/participants/${pledgeId}`;
+                    window.history.replaceState({}, "", newUrl);
+                }
+                this.getDetail(pledgeId);
+            }
+            getDetail(id) {
+                $.ajax({
+                url: 'https://dev.gprnt.ai/api/v1/cms/pledge',
+                method: "GET",
+                data: { pledge_id: id },
+                success: (data) => {
+                    if(data['status'] == 'Achiever') {
+                        $('.part-dl-hero').addClass('part-dl-hero-achiever');
+                    }
+                   $('[data-key]').each((idx, item) => {
+                    let val = $(item).attr('data-key');
+                    if(!data[val]){
+                        $(item).parent().hide();
+                        return;
+                    };
+                    if(val == 'logo_url'){
+                        console.log(data[val]) 
+                        $(item).attr('src', data[val])
+                    }
+                    else if(val == 'pledge_issued_date' || val =='pledge_expiry_date') {
+                        $(item).text( this.formatDate(data[val]) )
+                    }
+                    else if(val == 'website_url') {
+                        $(item).attr('href', data[val]);
+                        $(item).find('.txt').text(this.cleanLink(data[val]));
+                    }
+                    else {
+                        $(item).text(data[val])
+                    }
+                   })
+                },
+                error: (xhr, status, error) => {
+                    console.error("Lỗi khi gọi API:", error);
+                    this.notFound();
+                }
+                });
+            }
+            formatDate(dateStr) {
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+                const date = new Date(dateStr); // parse "2025-09-02"
+
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = months[date.getMonth()];
+                const year = date.getFullYear();
+
+                return `${day} ${month} ${year}`;
+            }
+            cleanLink(url) {
+                return url.replace(/^https?:\/\/(www\.)?/, '');
+            }
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
+    }
     class PageManager {
         constructor(page) {
             if (!page || typeof page !== 'object') {
@@ -1040,6 +1204,8 @@ const script = () => {
         tpEvent: tpEventPage,
         term: TermPage,
         participant: ParticipantPage,
+        participantDetail: ParticipantDetailPage,
+        notFound: notFoundPage,
     };
     const registry = {};
     registry[pageName]?.destroy();
