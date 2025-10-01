@@ -640,7 +640,8 @@ const script = () => {
                 this.loadingDelay = 300; // Show loading after 300ms
                 this.filter = {
                     pledge_status: [],
-                    industry: []
+                    industry: [],
+                    category: []
                 }
                 this.query = { type: 'enterprise', limit: 3, page: 1 }
             }
@@ -662,6 +663,9 @@ const script = () => {
                 this.interact();
             }
             setup() {
+                if(viewport.w < 768) {
+                    $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
+                }
             }
             fetchData(type) {
                 return new Promise(async (resolve, reject) => {
@@ -694,8 +698,6 @@ const script = () => {
                 }
                 // convert this.query to urlSearchParam
                 let queryString = new URLSearchParams(this.query).toString();
-                console.log(queryString)
-
                 this.isRequestInProgress = true;
 
                 // Clear any existing loading timeout
@@ -737,6 +739,12 @@ const script = () => {
                 return await this.fetchData(`pledge?pledge_id=${id}`);
             }
             interact() {
+                if(viewport.w < 768) {
+                    $('.part-pled-dropdown-filter').on('click', function() {
+                        $('.part-pled-filters-form-inner').toggleClass('active');
+                        $(this).toggleClass('active');
+                    })
+                }
                 const dropdownAct = {
                     open: (target) => {
                         let dropdown = $(target).parent();
@@ -763,7 +771,7 @@ const script = () => {
                 })
                 $(this).find('.part-pled-dropdown-link').on('click', (e) => {
                     e.preventDefault();
-                    let key = $(e.target).closest('.part-pled-dropdown').attr('data-filter');
+                    let key = $(e.target).closest('[data-filter]').attr('data-filter');
 
                     if ($(e.target).hasClass('check-all')) {
                         if ($(e.target).find('.checkbox-field').hasClass('active')) {
@@ -810,8 +818,28 @@ const script = () => {
                 $(this).find('.part-pled-tab').on('click', (e) => {
                     e.preventDefault();
                     $(e.target).addClass('active').siblings().removeClass('active');
-                    this.query = { ...this.query, type: $(e.target).attr('data-type'), page: 1 };
-
+                    let typeTab = $(e.target).attr('data-type');
+                    if(typeTab == 'sp') {
+                        delete this.query['industry'];
+                        let categories = this.updateActiveDropdown('category');
+                        console.log(categories)
+                        this.query = { ...this.query, 'category': categories.join(',') };
+                        $('[data-table-head]').removeClass('show');
+                        $('[data-table-head="category"]').addClass('show');
+                        $('.part-pled-dropdown-item').removeClass('show');
+                        $('.part-pled-dropdown-item[data-filter="category"]').addClass('show');
+                    }
+                    else {
+                        delete this.query['category'];
+                        let industries = this.updateActiveDropdown('industry');
+                        this.query = { ...this.query, 'industry': industries.join(',') };
+                        $('[data-table-head]').removeClass('show');
+                        $('[data-table-head="industry"]').addClass('show');
+                        $('.part-pled-dropdown-item').removeClass('show');
+                        $('.part-pled-dropdown-item[data-filter="industry"]').addClass('show');
+                    }
+                    this.query = { ...this.query, type: typeTab, page: 1 };
+                    console.log(this.query  )
                     this.fetchLeaderBoard().then(({data, pagination}) => {
                         this.updateData(data);
                         this.updatePagination(pagination);
@@ -837,7 +865,7 @@ const script = () => {
                             this.currentPage = this.totalPages;
                         }
                     }
-
+                    $('[data-pagi-current]').text(this.currentPage);
                     $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
                     $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
                     $(this).find('.part-pled-table-pagin-page').removeClass('active');
@@ -867,13 +895,36 @@ const script = () => {
                     });
                 }, 500))
             }
+            updateActiveDropdown(filterType){
+                let filterArr =[];
+                $(`[data-filter = "${filterType}"] .checkbox-field.active .txt`).each((idx, item)=> {
+                    filterArr.push($(item).text());
+                })
+                return filterArr;
+            }
+            // scrollToTop() {
+            //     let elem = $('.part-pled-stick');
+            //     let heightHeader = $('.header').outerHeight(); 
+            //     if (elem.length) {
+            //         let elemTop = elem.offset().top;
+            //         let elemHeight = elem.height();
+            //         let scrollTop = $(window).scrollTop();
+            //         if (elemTop - scrollTop <= heightHeader + elemHeight){
+            //             console.log('khanh')
+            //             lenis.scrollTo('.part-pled-stick', {
+            //             duration: 0.6,
+            //             offset: heightHeader + elemHeight,
+            //             });
+            //         }
+            //     }
+            // }
             updateData(data) {
                 $(this).find('.part-pled-table-list').empty();
                 data.forEach((item) => {
                     let row = this.rowDOM.clone();
                     Object.keys(item).forEach((key) => {
                         if ($(row).find(`[data-value="${key}"]`).length) {
-                             if (key === 'pledge_id') {
+                            if (key === 'pledge_id') {
                                 $(row).find(`[data-value="${key}"] a`).attr('href', `/participants/${item[key]}`);
                             }
                             else if (key === 'website_url') {
@@ -885,12 +936,24 @@ const script = () => {
                                     $(row).find(`[data-value="${key}"] .txt`).text('-');
                                 }
                             }
+                            else if (key === 'company_name') {
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/participants/${item['pledge_id']}`);
+                                $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                            }
                             else if (key === 'pledge_date') {
                                 $(row).find(`[data-value="${key}"] .txt`).text(item[key] ? new Date(item[key]).toLocaleDateString('en-GB', {
                                     day: 'numeric',
                                     month: 'short',
                                     year: 'numeric'
                                 }) : '-');
+                            }
+                            else if(key =='industry'){
+                                if($('.part-pled-tab.active').attr('data-type') == 'sp'){
+                                    $(row).find(`[data-value="${key}"] .txt`).text(item['primary_service_type']? item['primary_service_type'] : '-');
+                                }
+                                else {
+                                 $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                                }
                             }
                             else {
                                 $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
@@ -906,18 +969,14 @@ const script = () => {
             generatePagination(currentPage, totalPages, maxVisible = 5) {
                 const pages = [];
 
-                // Luôn hiển thị trang đầu
                 pages.push(1);
 
                 if (totalPages <= maxVisible) {
-                    // Nếu tổng số trang ít, hiển thị tất cả
                     for (let i = 2; i <= totalPages; i++) {
                     pages.push(i);
                     }
                 } else {
-                    // Logic cho nhiều trang
                     if (currentPage <= 3) {
-                    // Gần đầu: 1 2 3 ... 8 9
                     for (let i = 2; i <= 3; i++) {
                         pages.push(i);
                     }
@@ -926,14 +985,12 @@ const script = () => {
                     pages.push(totalPages);
                     }
                     else if (currentPage >= totalPages - 2) {
-                    // Gần cuối: 1 2 3 ... 7 8 9
                     pages.push('...');
                     for (let i = totalPages - 2; i <= totalPages; i++) {
                         pages.push(i);
                     }
                     }
                     else {
-                    // Ở giữa: 1 ... 4 5 6 ... 9
                     pages.push('...');
                     for (let i = currentPage - 1; i <= currentPage + 1; i++) {
                         pages.push(i);
@@ -948,23 +1005,19 @@ const script = () => {
             updatePagination(pagination, query) {
                 this.currentPage = pagination.currentPage;
                 this.totalPages = pagination.totalPages;
-
-                $(this).find('.part-pled-table-pagin-list').empty();
-
+                $('[data-pagi-total]').text(this.totalPages)
+                if(viewport.w > 767){
+                    $(this).find('.part-pled-table-pagin-list').empty();
+                }
                 $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
                 $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
-
-                // Sử dụng generatePagination thay vì tạo tất cả các trang
                 const visiblePages = this.generatePagination(this.currentPage, this.totalPages);
 
                 visiblePages.forEach((pageNumber) => {
                     let page = this.paginationDOM.clone();
-                    // console.log(pageNumber)
                     page.find('.txt').text(pageNumber);
                     console.log(this.currentPage)
                     page.toggleClass('active', pageNumber === this.currentPage);
-
-                    // Gắn onclick cho các trang số
                     page.on('click', (e) => {
                         e.preventDefault();
                         this.currentPage = pageNumber;
@@ -977,15 +1030,14 @@ const script = () => {
                                 console.error('Failed to fetch leaderboard:', error);
                             }
                         });
-
-                        // Cập nhật lại pagination sau khi thay đổi trang
                         this.updatePagination({
                             currentPage: this.currentPage,
                             totalPages: this.totalPages
                         }, query);
                     });
-
-                    $(this).find('.part-pled-table-pagin-list').append(page);
+                    if(viewport.w > 767){
+                        $(this).find('.part-pled-table-pagin-list').append(page);
+                    }                    
                 });
             }
             isLoading(loading) {
@@ -1069,6 +1121,18 @@ const script = () => {
             constructor() {
                 super();
                 this.tlTrigger = null;
+                this.badgeMap = {
+                    Pledger: {
+                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c38248b93d8a349ee3_Enterprise.png",
+                    business:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c37610447c19987bb8_Business.png",
+                    solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3675bbcb1068f3aac_Solution.png"
+                    },
+                    Achiever: {
+                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3d023c92681af1ed1_Enterprise2.png",
+                    business:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3d05cad77070a3ebc_Business2.png",
+                    solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c344c8d07e51658a43_Solution2.png"
+                    }
+                };
             }
             connectedCallback() {
                 this.tlTrigger = gsap.timeline({
@@ -1107,7 +1171,7 @@ const script = () => {
                     }
                    $('[data-key]').each((idx, item) => {
                     let val = $(item).attr('data-key');
-                    if(!data[val]){
+                    if(!data[val] && val != 'info-img'){
                         $(item).parent().hide();
                         return;
                     };
@@ -1122,6 +1186,11 @@ const script = () => {
                         $(item).attr('href', data[val]);
                         $(item).find('.txt').text(this.cleanLink(data[val]));
                     }
+                    else if(val == 'info-img') {
+                        const badgeUrl = this.getBadgeImage(data.status, data.type_of_company);
+                        console.log(badgeUrl)
+                        $(item).attr('src', badgeUrl)
+                    }
                     else {
                         $(item).text(data[val])
                     }
@@ -1131,6 +1200,9 @@ const script = () => {
                     console.error("Lỗi khi gọi API:", error);
                 }
                 });
+            }
+            getBadgeImage(status, type) {
+                return this.badgeMap[status]?.[type] || null;
             }
             formatDate(dateStr) {
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
