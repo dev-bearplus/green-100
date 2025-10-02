@@ -1156,7 +1156,7 @@ const script = () => {
                 method: "GET",
                 data: { pledge_id: id },
                 success: (data) => {
-                    window.location.href = `/participants?id=${id}`;
+                    window.location.href = `/pledgers?id=${id}`;
                 },
                 error: (xhr, status, error) => {
                     console.error("Lỗi khi gọi API:", error);
