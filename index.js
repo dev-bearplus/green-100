@@ -814,8 +814,13 @@ const script = () => {
                     },
                     toggle: (target) => {
                         let dropdown = $(target).parent();
-                        dropdown.toggleClass('active');
-                        dropdown.siblings().removeClass('active');
+                        if(dropdown.hasClass('active')){
+                            dropdown.removeClass('active');
+                        }
+                        else {
+                            $('[data-filter]').removeClass('active');
+                            dropdown.addClass('active');
+                        }
                     }
                 }
                 $(this).find('.part-pled-dropdown-toggle').on('click', function (e) {
@@ -978,7 +983,7 @@ const script = () => {
                     Object.keys(item).forEach((key) => {
                         if ($(row).find(`[data-value="${key}"]`).length) {
                             if (key === 'pledge_id') {
-                                $(row).find(`[data-value="${key}"] a`).attr('href', `/participants/${item[key]}`);
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/pledgers/${item[key]}`);
                             }
                             else if (key === 'website_url') {
                                 if (item[key]) {
@@ -990,7 +995,7 @@ const script = () => {
                                 }
                             }
                             else if (key === 'company_name') {
-                                $(row).find(`[data-value="${key}"] a`).attr('href', `/participants/${item['pledge_id']}`);
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/pledgers/${item['pledge_id']}`);
                                 $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
                             }
                             else if (key === 'pledge_date') {
@@ -1128,7 +1133,7 @@ const script = () => {
             }
             checkRedirect() {
                 let url = window.location.pathname;
-                if (url.includes('/participants/')) {
+                if (url.includes('/pledgers/')) {
                     console.log('in side');
                     const pathParts = window.location.pathname.split("/").filter(Boolean);
                     const pledgeId = pathParts[pathParts.length - 1];
@@ -1208,7 +1213,7 @@ const script = () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const pledgeId = urlParams.get("id");
                 if (pledgeId) {
-                    const newUrl = `/participants/${pledgeId}`;
+                    const newUrl = `/pledgers/${pledgeId}`;
                     window.history.replaceState({}, "", newUrl);
                 }
                 this.getDetail(pledgeId);
