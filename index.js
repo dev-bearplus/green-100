@@ -273,6 +273,59 @@ const script = () => {
                 this.tlTrigger.kill();
             }
         },
+        'home-testi-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+            setup() {
+                let swiperEvent = new Swiper(".home-testi-cms", {
+                    slidesPerView: 1,
+                    spaceBetween: parseRem(0),
+                    effect: "fade",
+                    navigation: {
+                        prevEl: ".home-testi-content-control-item.prev",
+                        nextEl: ".home-testi-content-control-item.next",
+                    },
+                    pagination: {
+                        el: '.home-testi-content-pagi',
+                        bulletClass: 'home-testi-content-pagi-item',
+                        bulletActiveClass: 'active',
+                        clickable: true,
+                    },
+                    breakpoints: {
+                        767: {
+                            spaceBetween: parseRem(16),
+                        }
+                    }
+                });
+            }
+            interact() {
+
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
         'home-event-wrap': class extends HTMLElement {
             constructor() {
                 super();
