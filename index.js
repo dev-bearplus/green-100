@@ -135,7 +135,39 @@ const script = () => {
         }
     }
     customElements.define('header-component', Header);
+    class Loading extends HTMLElement {
+        constructor() {
+            super();
+            this.el = this;
+        }
+        connectedCallback() {
+            this.setup();
 
+        }
+        setup() {
+            let tl = new gsap.timeline({
+                onComplete: () => {
+                    $('.loading').addClass('loaded')
+                }
+            });
+            tl
+                .fromTo('.loading-logo-path', {strokeDasharray: "0 30px"}, { strokeDasharray: "1 30px", duration: 1, ease: 'power2.in'})
+                .to('html', {'--col-1': '0vh', duration: 1.2, ease: 'power1.out'}, `>=.2`)
+                .to('html', {'--col-2': '0vh', duration: 1.2 - .1, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-3': '0vh', duration: 1.2 - .1 * 2, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-4': '0vh', duration: 1.2 - .1 * 3, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-5': '0vh', duration: 1.2 - .1 * 4, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-6': '0vh', duration: 1.2 - .1 * 5, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-7': '0vh', duration: 1.2 - .1 * 6, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-8': '0vh', duration: 1.2 - .1 * 7, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-9': '0vh', duration: 1.2 - .1 * 8, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-10': '0vh', duration: 1.2 - .1 * 9, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-11': '0vh', duration: 1.2 - .1 * 10, ease: 'power1.out'}, `<=${.1}`)
+                .to('html', {'--col-12': '0vh', duration: 1.2 - .1 * 11 , ease: 'power1.out'}, `<=${.1}`)
+        }
+        
+    }
+    customElements.define('loading-wrap', Loading);
     class Popup extends HTMLElement {
         constructor() {
             super();
@@ -696,7 +728,7 @@ const script = () => {
                     industry: [],
                     category: []
                 }
-                this.query = { type: 'enterprise', limit: 3, page: 1 }
+                this.query = { type: 'enterprise', limit: 10, page: 1 }
             }
             connectedCallback() {
                 this.tlTrigger = gsap.timeline({
