@@ -1283,6 +1283,9 @@ const script = () => {
                     if(data['status'] == 'Achiever') {
                         $('.part-dl-hero').addClass('part-dl-hero-achiever');
                     }
+                    if(data['industry']== '' || data['website_url' == '']){
+                        $('.part-dl-hero-social-item-space').hide();
+                    }
                    $('[data-key]').each((idx, item) => {
                     let val = $(item).attr('data-key');
                     if(!data[val] && val != 'info-img'){
@@ -1290,8 +1293,13 @@ const script = () => {
                         return;
                     };
                     if(val == 'logo_url'){
-                        console.log(data[val]) 
-                        $(item).attr('src', data[val])
+                        console.log(this.checkImageWithAjax(data[val]))
+                        if(this.checkImageWithAjax(data[val])){
+                            $(item).attr('src', data[val])
+                        }
+                        else {
+                            $(item).parent().hide();
+                        }
                     }
                     else if(val == 'pledge_issued_date' || val =='pledge_expiry_date') {
                         $(item).text( this.formatDate(data[val]) )
@@ -1317,6 +1325,18 @@ const script = () => {
             }
             getBadgeImage(status, type) {
                 return this.badgeMap[status]?.[type] || null;
+            }
+            checkImageWithAjax(url) {
+                $.ajax({
+                    url: url,
+                    type: 'HEAD',
+                    success: function() {
+                        return true;
+                    },
+                    error: function() {
+                        return false;
+                    }
+                });
             }
             formatDate(dateStr) {
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
