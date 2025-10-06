@@ -114,9 +114,9 @@ const script = () => {
                     .to('.loading-logo-path', {opacity: 1, duration: .6})
                     .fromTo('.loading-logo-path', {strokeDasharray: "0 15px"}, { strokeDasharray: "1 15px", duration: 1, ease: 'power2.in'}, '<=.2')
                     .to('html', {'--col-1': '0vh', duration: .8, ease: 'power1.out'}, `>=.2`)
-                    .to('html', {'--col-2': '0vh', duration: .8 - .2, ease: 'power1.out'}, `<=${.1}`)
-                    .to('html', {'--col-3': '0vh', duration: .8 - .2 * 2, ease: 'power1.out'}, `<=${.1}`)
-                    .to('html', {'--col-4': '0vh', duration: .8 - .2 * 3, ease: 'power1.out'}, `<=${.1}`)
+                    .to('html', {'--col-2': '0vh', duration: .8 - .1, ease: 'power1.out'}, `<=${.1}`)
+                    .to('html', {'--col-3': '0vh', duration: .8 - .1 * 2, ease: 'power1.out'}, `<=${.1}`)
+                    .to('html', {'--col-4': '0vh', duration: .8 - .1 * 3, ease: 'power1.out'}, `<=${.1}`)
             }
         }
         
