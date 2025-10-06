@@ -1238,12 +1238,12 @@ const script = () => {
                 this.badgeMap = {
                     Pledger: {
                     enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c38248b93d8a349ee3_Enterprise.png",
-                    business:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c37610447c19987bb8_Business.png",
+                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c37610447c19987bb8_Business.png",
                     solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3675bbcb1068f3aac_Solution.png"
                     },
                     Achiever: {
                     enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3d023c92681af1ed1_Enterprise2.png",
-                    business:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3d05cad77070a3ebc_Business2.png",
+                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3d05cad77070a3ebc_Business2.png",
                     solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c344c8d07e51658a43_Solution2.png"
                     }
                 };
