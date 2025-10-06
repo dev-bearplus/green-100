@@ -1190,7 +1190,6 @@ const script = () => {
             checkRedirect() {
                 let url = window.location.pathname;
                 if (url.includes('/pledgers/')) {
-                    console.log('in side');
                     const pathParts = window.location.pathname.split("/").filter(Boolean);
                     const pledgeId = pathParts[pathParts.length - 1];
                     this.getDetail(pledgeId);
@@ -1202,7 +1201,7 @@ const script = () => {
             }
             notFound() {
                 history.replaceState({},'',`/404`)
-                $('.notfound-hero-title').text('Not Found')
+                $('title').text('Not Found')
                 $('.body-inner').removeAttr('data-init-hidden')
                 return;
             }
@@ -1237,14 +1236,14 @@ const script = () => {
                 this.tlTrigger = null;
                 this.badgeMap = {
                     Pledger: {
-                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c38248b93d8a349ee3_Enterprise.png",
-                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c37610447c19987bb8_Business.png",
-                    solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3675bbcb1068f3aac_Solution.png"
+                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187b43b7ba5414b0436_enterprise.webp",
+                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187b22ffc35efe47372_business.webp",
+                    solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187d06b59c991333e87_solution.webp"
                     },
                     Achiever: {
-                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3d023c92681af1ed1_Enterprise2.png",
-                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c3d05cad77070a3ebc_Business2.png",
-                    solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68dca1c344c8d07e51658a43_Solution2.png"
+                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e3718768e2a733fabd38b3_enterprise2.webp",
+                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e371871ab2108b60be4733_business2.webp",
+                    solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e3718700f4bf8c1a16e5f1_solution2.webp"
                     }
                 };
             }
@@ -1342,7 +1341,7 @@ const script = () => {
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
                                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-                const date = new Date(dateStr); // parse "2025-09-02"
+                const date = new Date(dateStr); 
 
                 const day = String(date.getDate()).padStart(2, '0');
                 const month = months[date.getMonth()];
