@@ -1238,12 +1238,12 @@ const script = () => {
                     Pledger: {
                     enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187b43b7ba5414b0436_enterprise.webp",
                     sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187b22ffc35efe47372_business.webp",
-                    solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187d06b59c991333e87_solution.webp"
+                    sp:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187d06b59c991333e87_solution.webp"
                     },
                     Achiever: {
                     enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e3718768e2a733fabd38b3_enterprise2.webp",
                     sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e371871ab2108b60be4733_business2.webp",
-                    solution:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e3718700f4bf8c1a16e5f1_solution2.webp"
+                    sp:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e3718700f4bf8c1a16e5f1_solution2.webp"
                     }
                 };
             }
