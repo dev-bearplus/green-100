@@ -80,9 +80,9 @@ const script = () => {
                 }
             });
             tl
-                .to('.loading-logo-path', {opacity: 1, duration: .6})
-                .fromTo('.loading-logo-path', {strokeDasharray: "0 15px"}, { strokeDasharray: "1 15px", duration: 1, ease: 'power2.in'}, '<=.2')
-                .to('.loading', {yPercent: -100, duration: 1, ease: 'power4.in'})
+                .to('.loading-logo-path', {opacity: 1, duration: .4})
+                .fromTo('.loading-logo-path', {strokeDasharray: "0 15px"}, { strokeDasharray: "1 15px", duration: .8, ease: 'power1.in'}, '<=.2')
+                .to('.loading', {yPercent: -100, duration: .6, ease: 'power4.in'})
                 .to('.loading-logo', {opacity: 0, duration: .6, }, '<=0.6')
             // if(viewport.w > 991) {
             //         // .to('html', {'--col-1': '0vh', duration: 1.2, ease: 'power1.out'}, `>=.2`)
