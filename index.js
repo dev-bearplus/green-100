@@ -52,12 +52,17 @@ const script = () => {
     let header = document.querySelector('header-component')
     // Initialize Lenis
     const lenis = new Lenis();
-    gsap.ticker.add((time) => {
-        if (lenis) {
-            lenis.raf(time * 1000);
-        }
-    });
-    gsap.ticker.lagSmoothing(0);
+    // gsap.ticker.add((time) => {
+    //     if (lenis) {
+    //         lenis.raf(time * 1000);
+    //     }
+    // });
+    // gsap.ticker.lagSmoothing(0);
+    function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
     lenis.on('scroll', ScrollTrigger.update)
     lenis.on('scroll', (inst) => {
         header.toggleSticky(inst.scroll >= header.clientHeight)
