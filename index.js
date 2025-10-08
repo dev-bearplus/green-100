@@ -1288,34 +1288,46 @@ const script = () => {
                         $('.part-dl-hero-social-item-space').hide();
                     }
                    $('[data-key]').each((idx, item) => {
-                    let val = $(item).attr('data-key');
-                    if(!data[val] && val != 'info-img'){
+                    let key = $(item).attr('data-key');
+                    if(!data[key] && key != 'info-img'){
                         $(item).parent().hide();
                         return;
-                    };
-                    if(val == 'logo_url'){
-                        console.log(this.checkImageWithAjax(data[val]))
-                        if(this.checkImageWithAjax(data[val])){
-                            $(item).attr('src', data[val])
+                    }
+                    else if(key == 'logo_url'){
+                        console.log(this.checkImageWithAjax(data[key]))
+                        if(this.checkImageWithAjax(data[key])){
+                            $(item).attr('src', data[key])
                         }
                         else {
                             $(item).parent().hide();
                         }
                     }
-                    else if(val == 'pledge_issued_date' || val =='pledge_expiry_date') {
-                        $(item).text( this.formatDate(data[val]) )
+                    else if(key == 'type_of_company'){
+                        let type  = data[key];
+                        if(type == 'sp'){
+                            $(item).text('Solution')
+                        }
+                        else if(type == 'sme') {
+                            $(item).text("Business")
+                        }
+                        else {
+                            $(item).text('Enterprise')
+                        }
                     }
-                    else if(val == 'website_url') {
-                        $(item).attr('href', data[val]);
-                        $(item).find('.txt').text(this.cleanLink(data[val]));
+                    else if(key == 'pledge_issued_date' || key =='pledge_expiry_date') {
+                        $(item).text( this.formatDate(data[key]) )
                     }
-                    else if(val == 'info-img') {
+                    else if(key == 'website_url') {
+                        $(item).attr('href', data[key]);
+                        $(item).find('.txt').text(this.cleanLink(data[key]));
+                    }
+                    else if(key == 'info-img') {
                         const badgeUrl = this.getBadgeImage(data.status, data.type_of_company);
                         console.log(badgeUrl)
                         $(item).attr('src', badgeUrl)
                     }
                     else {
-                        $(item).text(data[val])
+                        $(item).text(data[key])
                     }
                    })
                 },
