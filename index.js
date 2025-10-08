@@ -1041,7 +1041,7 @@ const script = () => {
                     Object.keys(item).forEach((key) => {
                         if ($(row).find(`[data-value="${key}"]`).length) {
                             if (key === 'pledge_id') {
-                                $(row).find(`[data-value="${key}"] a`).attr('href', `/pledgers/${item[key]}`);
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/pledger/${item[key]}`);
                             }
                             else if (key === 'website_url') {
                                 if (item[key]) {
@@ -1053,7 +1053,7 @@ const script = () => {
                                 }
                             }
                             else if (key === 'company_name') {
-                                $(row).find(`[data-value="${key}"] a`).attr('href', `/pledgers/${item['pledge_id']}`);
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/pledger/${item['pledge_id']}`);
                                 $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
                             }
                             else if (key === 'pledge_date') {
@@ -1191,7 +1191,7 @@ const script = () => {
             }
             checkRedirect() {
                 let url = window.location.pathname;
-                if (url.includes('/pledgers/')) {
+                if (url.includes('/pledger/')) {
                     const pathParts = window.location.pathname.split("/").filter(Boolean);
                     const pledgeId = pathParts[pathParts.length - 1];
                     this.getDetail(pledgeId);
@@ -1213,7 +1213,7 @@ const script = () => {
                 method: "GET",
                 data: { pledge_id: id },
                 success: (data) => {
-                    window.location.href = `/pledgers?id=${id}`;
+                    window.location.href = `/pledger?id=${id}`;
                 },
                 error: (xhr, status, error) => {
                     console.error("Lỗi khi gọi API:", error);
@@ -1270,7 +1270,7 @@ const script = () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const pledgeId = urlParams.get("id");
                 if (pledgeId) {
-                    const newUrl = `/pledgers/${pledgeId}`;
+                    const newUrl = `/pledger/${pledgeId}`;
                     window.history.replaceState({}, "", newUrl);
                 }
                 this.getDetail(pledgeId);
