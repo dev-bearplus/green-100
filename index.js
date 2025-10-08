@@ -853,6 +853,12 @@ const script = () => {
                 if(viewport.w < 768) {
                     $('.part-pled-dropdown-filter').on('click', function() {
                         $('.part-pled-filters-form-inner').toggleClass('active');
+                        if($(this).hasClass('active')){
+                            lenis.start();
+                        }
+                        else {
+                            lenis.stop();
+                        }
                         $(this).toggleClass('active');
                     })
                 }
