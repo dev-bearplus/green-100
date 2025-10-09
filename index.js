@@ -1282,6 +1282,9 @@ const script = () => {
                     const newUrl = `/pledger/${pledgeId}`;
                     window.history.replaceState({}, "", newUrl);
                 }
+                else {
+                    window.location.href = '/pledgers'
+                }
                 this.getDetail(pledgeId);
             }
             getDetail(id) {
