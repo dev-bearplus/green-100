@@ -779,9 +779,12 @@ const script = () => {
                 this.interact();
             }
             setup() {
-                // if(viewport.w < 768) {
-                //     $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
-                // }
+                if(viewport.w < 768) {
+                    $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
+                }
+                else {
+                    $('.part-pled-dropdown-list').attr('data-lenis-prevent', true)
+                }
             }
             fetchData(type) {
                 return new Promise(async (resolve, reject) => {
