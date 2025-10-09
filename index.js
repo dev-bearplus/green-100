@@ -1417,7 +1417,6 @@ const script = () => {
                         start: 'top center',
                         end: 'bottom center',
                         scrub: 1,
-                        markers: true
                     }
                 })
                 tl.to(content.chars, {color: "#1A3628", duration: 1, stagger: .02})
