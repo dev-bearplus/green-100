@@ -780,7 +780,7 @@ const script = () => {
             }
             setup() {
                 if(viewport.w < 768) {
-                    // $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
+                    $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
                 }
                 else {
                     $('.part-pled-dropdown-list').attr('data-lenis-prevent', true)
@@ -862,12 +862,12 @@ const script = () => {
                     $('.part-pled-dropdown-filter').on('click', function(e) {
                         e.preventDefault();
                         $('.part-pled-filters-form-inner').toggleClass('active');
-                        // if($(this).hasClass('active')){
-                        //     lenis.start();
-                        // }
-                        // else {
-                        //     lenis.stop();
-                        // }
+                        if($(this).hasClass('active')){
+                            lenis.start();
+                        }
+                        else {
+                            lenis.stop();
+                        }
                         $(this).toggleClass('active');
                     })
                 }
