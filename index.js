@@ -687,7 +687,7 @@ const script = () => {
             }
         }
     }
-    const tpEventPage = {
+    const TpEventPage = {
         'tp-event-blog-wrap': class extends HTMLElement {
             constructor() {
                 super();
@@ -779,9 +779,9 @@ const script = () => {
                 this.interact();
             }
             setup() {
-                if(viewport.w < 768) {
-                    $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
-                }
+                // if(viewport.w < 768) {
+                //     $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
+                // }
             }
             fetchData(type) {
                 return new Promise(async (resolve, reject) => {
@@ -1176,7 +1176,7 @@ const script = () => {
             }
         }
     }
-    const notFoundPage = {
+    const NotFoundPage = {
        'not-found-hero-wrap': class extends HTMLElement {
             constructor() {
                 super();
@@ -1387,6 +1387,51 @@ const script = () => {
             }
         },
     }
+    const AboutPage = {
+       'about-mission-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                let content = new SplitType('.about-mission-sub-txt', {types: 'lines, words, chars', lineClass: 'bp-line'});
+                let tl = new gsap.timeline({
+                    scrollTrigger: {
+                        trigger: '.about-mission-sub',
+                        start: 'top center',
+                        end: 'bottom center',
+                        scrub: 1,
+                        markers: true
+                    }
+                })
+                tl.to(content.chars, {color: "#1A3628", duration: 1, stagger: .02})
+            }
+           
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
+    }
     class PageManager {
         constructor(page) {
             if (!page || typeof page !== 'object') {
@@ -1428,11 +1473,12 @@ const script = () => {
 
     const pageConfig = {
         home: HomePage,
-        tpEvent: tpEventPage,
+        tpEvent: TpEventPage,
         term: TermPage,
         participant: ParticipantPage,
         participantDetail: ParticipantDetailPage,
-        notFound: notFoundPage,
+        notFound: NotFoundPage,
+        about: AboutPage,
     };
     const registry = {};
     registry[pageName]?.destroy();
