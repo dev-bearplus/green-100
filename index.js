@@ -51,24 +51,7 @@ const script = () => {
     }
     let header = document.querySelector('header-component')
     // Initialize Lenis
-    const lenis = new Lenis({
-        duration: .4,
-        orientation: 'vertical',
-        gestureOrientation: 'vertical',
-        smoothWheel: true,
-        smoothTouch: false, 
-        wheelMultiplier: 1,
-        touchMultiplier: 2,
-        infinite: false,
-        prevent: (node) => {
-            // Check data attribute
-            if (node.hasAttribute('data-lenis-prevent')) {
-            return true;
-            }
-            // Check nếu node hoặc parent có class/attribute
-            return node.closest('[data-lenis-prevent]') !== null;
-        }
-    });
+    const lenis = new Lenis();
     // gsap.ticker.add((time) => {
     //     if (lenis) {
     //         lenis.raf(time * 1000);
@@ -798,25 +781,6 @@ const script = () => {
             setup() {
                 if(viewport.w < 768) {
                     // $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
-                    // $('.part-pled-dropdown-list').attr('data-lenis-prevent', true)
-                    // Detect iOS
-                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-                    if (isIOS) {
-                    // Cách 1: Stop Lenis khi touch vào element
-                    $('.part-pled-filters-form-inner').on('touchstart', function(e) {
-                        if (window.lenis) {
-                        window.lenis.stop();
-                        }
-                    });
-                    
-                    $('.part-pled-filters-form-inner').on('touchend', function(e) {
-                        if (window.lenis) {
-                        window.lenis.start();
-                        }
-                    });
-                    }
-
                 }
                 else {
                     $('.part-pled-dropdown-list').attr('data-lenis-prevent', true)
