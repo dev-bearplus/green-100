@@ -1430,6 +1430,56 @@ const script = () => {
                 }
             }
         },
+        'about-mile-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                let swiperMile = new Swiper(".about-mile-cms", {
+                    slidesPerView: 1.2,
+                    spaceBetween: parseRem(16),
+                    navigation: {
+                        prevEl: ".about-mile-control-item.about-mile-control-item-prev",
+                        nextEl: ".about-mile-control-item.about-mile-control-item-next",
+                    },
+                    breakpoints: {
+                        767: {
+                            spaceBetween: parseRem(24),
+                            slidesPerView: 1.4,
+                        },
+                        991: {
+                            spaceBetween: parseRem(24),
+                            slidesPerView: 2,
+                        }
+                    }
+                });
+            }
+           
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
     }
     class PageManager {
         constructor(page) {
