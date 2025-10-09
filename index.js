@@ -52,16 +52,14 @@ const script = () => {
     let header = document.querySelector('header-component')
     // Initialize Lenis
     const lenis = new Lenis({
-        duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        duration: .4,
         orientation: 'vertical',
         gestureOrientation: 'vertical',
         smoothWheel: true,
-        smoothTouch: false, // ✅ TẮT smooth touch cho mobile/iOS
+        smoothTouch: false, 
         wheelMultiplier: 1,
         touchMultiplier: 2,
         infinite: false,
-        // ✅ QUAN TRỌNG: Prevent selector
         prevent: (node) => {
             // Check data attribute
             if (node.hasAttribute('data-lenis-prevent')) {
@@ -801,6 +799,23 @@ const script = () => {
                 if(viewport.w < 768) {
                     // $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
                     // $('.part-pled-dropdown-list').attr('data-lenis-prevent', true)
+                    // Detect iOS
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+                    if (isIOS) {
+                    // Cách 1: Stop Lenis khi touch vào element
+                    $('.part-pled-filters-form-inner').on('touchstart', function(e) {
+                        if (window.lenis) {
+                        window.lenis.stop();
+                        }
+                    });
+                    
+                    $('.part-pled-filters-form-inner').on('touchend', function(e) {
+                        if (window.lenis) {
+                        window.lenis.start();
+                        }
+                    });
+                    }
 
                 }
                 else {
