@@ -780,7 +780,9 @@ const script = () => {
             }
             setup() {
                 if(viewport.w < 768) {
-                    $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
+                    // $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
+                    // $('.part-pled-dropdown-list').attr('data-lenis-prevent', true)
+
                 }
                 else {
                     $('.part-pled-dropdown-list').attr('data-lenis-prevent', true)
