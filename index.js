@@ -135,7 +135,7 @@ const script = () => {
             this.el = this;
             this.navEl = this.el.querySelector('.header-act');
             this.toggle = this.el.querySelector('.header-toggle-btn');
-            this.allLinks = this.el.querySelectorAll('.header-link');
+            this.allLinks = this.el.querySelectorAll('.header-link[data-link="section"]');
             this.allFooterLinks = document.querySelectorAll('.footer-link[href^="/#"]')
         }
         connectedCallback() {
