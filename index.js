@@ -51,7 +51,26 @@ const script = () => {
     }
     let header = document.querySelector('header-component')
     // Initialize Lenis
-    const lenis = new Lenis();
+    const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        gestureOrientation: 'vertical',
+        smoothWheel: true,
+        smoothTouch: false, // ✅ TẮT smooth touch cho mobile/iOS
+        wheelMultiplier: 1,
+        touchMultiplier: 2,
+        infinite: false,
+        // ✅ QUAN TRỌNG: Prevent selector
+        prevent: (node) => {
+            // Check data attribute
+            if (node.hasAttribute('data-lenis-prevent')) {
+            return true;
+            }
+            // Check nếu node hoặc parent có class/attribute
+            return node.closest('[data-lenis-prevent]') !== null;
+        }
+    });
     // gsap.ticker.add((time) => {
     //     if (lenis) {
     //         lenis.raf(time * 1000);
