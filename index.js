@@ -291,46 +291,36 @@ const script = () => {
                 this.tlTrigger = null;
             }
             connectedCallback() {
-                // this.tlTrigger = gsap.timeline({
-                //     scrollTrigger: {
-                //         trigger: this,
-                //         start: 'top bottom+=50%',
-                //         end: 'bottom top-=50%',
-                //         once: true,
-                //         onEnter: () => {
-                //             this.onTrigger();
-                //         }
-                //     }
-                // });
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
             }
             onTrigger() {
-                if (viewport.w > 767) {
-                    this.interact();
+                this.setup();
+                this.interact();
+            }
+            setup() {
+                if(viewport.w < 768){
+                    if($('.home-partner-main-item').length > 5){
+                        $('.home-partner-viewmore').show();
+                        $('.home-partner-main-item').slice(5).hide();
+                        $('.home-partner-viewmore').on('click', () => {
+                            $('.home-partner-main-item').slice(5).fadeIn();
+                            $('.home-partner-viewmore').hide();
+                        })
+                    }
                 }
             }
             interact() {
-                const listElement = this.querySelector('.home-partner-main-list');
-                const innerElement = this.querySelector('.home-partner-main-inner');
-
-                if (!listElement || !innerElement) return;
-
-                const cloneCount = Math.ceil(listElement.clientWidth / innerElement.clientWidth) + 1;
-                const allGroups = this.querySelectorAll('.home-partner-main-cms');
-
-                allGroups.forEach((group, index) => {
-                    const originalList = group.querySelector('.home-partner-main-list');
-                    if (!originalList) return;
-
-                    for (let i = 0; i < cloneCount; i++) {
-                        const clonedList = originalList.cloneNode(true);
-                        group.appendChild(clonedList);
-                    }
-
-                    const animationClass = index % 2 === 0 ? 'anim-marquee' : 'anim-marquee-revert';
-                    group.querySelectorAll('.home-partner-main-list').forEach(list => {
-                        list.classList.add(animationClass);
-                    });
-                });
+                
             }
             destroy() {
                 this.tlTrigger.kill();
