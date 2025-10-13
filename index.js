@@ -309,11 +309,11 @@ const script = () => {
             }
             setup() {
                 if(viewport.w < 768){
-                    if($('.home-partner-main-item').length > 5){
+                    if($('.home-partner-main-item').length > 10){
                         $('.home-partner-viewmore').show();
-                        $('.home-partner-main-item').slice(5).hide();
+                        $('.home-partner-main-item').slice(10).hide();
                         $('.home-partner-viewmore').on('click', () => {
-                            $('.home-partner-main-item').slice(5).fadeIn();
+                            $('.home-partner-main-item').slice(10).fadeIn();
                             $('.home-partner-viewmore').hide();
                         })
                     }
