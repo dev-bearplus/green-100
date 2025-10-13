@@ -779,6 +779,7 @@ const script = () => {
                 this.interact();
             }
             setup() {
+
                 if(viewport.w < 768) {
                     $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
                 }
@@ -934,6 +935,8 @@ const script = () => {
                         }
                     });
                 })
+                $('.part-pled-dropdown-link.check-all').click();
+                $('[data-filter="pledge_status"] .part-pled-dropdown-link').click();
                 $(window).on('click', (e) => {
                     if (!$(this).find('.part-pled-dropdown-link:hover').length)
                         if (!$(this).find('.part-pled-dropdown-toggle:hover').length) {
