@@ -1300,7 +1300,8 @@ const script = () => {
                     if(data['status'] == 'Achiever') {
                         $('.part-dl-hero').addClass('part-dl-hero-achiever');
                     }
-                    if(data['industry']== '' || data['website_url' == '']){
+                    console.log('khanh' +data['website_url'])
+                    if(data['industry']== '' || !data['website_url']){
                         $('.part-dl-hero-social-item-space').hide();
                     }
                    $('[data-key]').each((idx, item) => {
