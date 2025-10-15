@@ -1053,6 +1053,7 @@ const script = () => {
                                 }
                                 else {
                                     $(row).find(`[data-value="${key}"] .txt`).text('-');
+                                    $(row).find(`[data-value="${key}"] a`).addClass('item-null')
                                 }
                             }
                             else if (key === 'company_name') {
