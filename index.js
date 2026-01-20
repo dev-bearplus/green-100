@@ -12,7 +12,10 @@ const script = () => {
         h: window.innerHeight,
     };
     const device = { desktop: 991, tablet: 767, mobile: 479 }
-
+    function isStagging() {
+        let currentUrl = window.location.href;
+        return currentUrl.includes('webflow.io')
+    }
     const cvUnit = (val, unit) => {
         let result;
         switch (true) {
@@ -780,7 +783,7 @@ const script = () => {
             fetchData(type) {
                 return new Promise(async (resolve, reject) => {
                     try {
-                        let url = `https://dev.gprnt.ai/api/v1/cms/${type}`;
+                        let url = isStagging() ? `https://uat.gprnt.ai/api/v1/cms/${type}` : `https://dev.gprnt.ai/api/v1/cms/${type}`;
                         const response = await fetch(url, {
                             method: 'GET',
                             headers: {
@@ -1213,7 +1216,7 @@ const script = () => {
             }
             getDetail(id) {
                 $.ajax({
-                url: 'https://dev.gprnt.ai/api/v1/cms/pledge',
+                url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://dev.gprnt.ai/api/v1/cms/pledge',
                 method: "GET",
                 data: { pledge_id: id },
                 success: (data) => {
@@ -1284,7 +1287,7 @@ const script = () => {
             }
             getDetail(id) {
                 $.ajax({
-                url: 'https://dev.gprnt.ai/api/v1/cms/pledge',
+                url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://dev.gprnt.ai/api/v1/cms/pledge',
                 method: "GET",
                 data: { pledge_id: id },
                 success: (data) => {
