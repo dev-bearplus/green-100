@@ -752,7 +752,7 @@ const script = () => {
                     industry: [],
                     category: []
                 }
-                this.query = { type: 'enterprise', limit: 10, page: 1 }
+                this.query = { type: 'enterprise', limit: 2, page: 1 }
             }
             connectedCallback() {
                 this.tlTrigger = gsap.timeline({
@@ -809,8 +809,15 @@ const script = () => {
                 if (this.isRequestInProgress) {
                     return Promise.reject(new Error('Request already in progress'));
                 }
-                // convert this.query to urlSearchParam
-                let queryString = new URLSearchParams(this.query).toString();
+                // Filter out empty, null, undefined values from query
+                const filteredQuery = Object.entries(this.query).reduce((acc, [key, value]) => {
+                    if (value !== null && value !== undefined && value !== '') {
+                        acc[key] = value;
+                    }
+                    return acc;
+                }, {});
+                // convert filtered query to urlSearchParam
+                let queryString = new URLSearchParams(filteredQuery).toString();
                 this.isRequestInProgress = true;
 
                 // Clear any existing loading timeout
@@ -1285,12 +1292,12 @@ const script = () => {
                 }
                 this.getDetail(pledgeId);
             }
-            getDetail(id) {
+            async getDetail(id) {
                 $.ajax({
                 url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://dev.gprnt.ai/api/v1/cms/pledge',
                 method: "GET",
                 data: { pledge_id: id },
-                success: (data) => {
+                success: async (data) => {
                     if(data['status'] == 'Achiever') {
                         $('.part-dl-hero').addClass('part-dl-hero-achiever');
                     }
@@ -1298,15 +1305,16 @@ const script = () => {
                     if(data['industry']== '' || !data['website_url']){
                         $('.part-dl-hero-social-item-space').hide();
                     }
-                   $('[data-key]').each((idx, item) => {
+                   $('[data-key]').each(async (idx, item) => {
                     let key = $(item).attr('data-key');
                     if(!data[key] && key != 'info-img'){
                         $(item).parent().hide();
                         return;
                     }
                     else if(key == 'logo_url'){
-                        console.log(this.checkImageWithAjax(data[key]))
-                        if(this.checkImageWithAjax(data[key])){
+                        const isValidImage = await this.checkImageWithAjax(data[key]);
+                        console.log(isValidImage);
+                        if(isValidImage){
                             $(item).attr('src', data[key])
                         }
                         else {
@@ -1350,16 +1358,12 @@ const script = () => {
             getBadgeImage(status, type) {
                 return this.badgeMap[status]?.[type] || null;
             }
-            checkImageWithAjax(url) {
-                $.ajax({
-                    url: url,
-                    type: 'HEAD',
-                    success: function() {
-                        return true;
-                    },
-                    error: function() {
-                        return false;
-                    }
+            async checkImageWithAjax(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = url;
                 });
             }
             formatDate(dateStr) {
