@@ -752,7 +752,7 @@ const script = () => {
                     industry: [],
                     category: []
                 }
-                this.query = { type: 'enterprise', limit: 2, page: 1 }
+                this.query = { type: 'enterprise', limit: 10, page: 1 }
             }
             connectedCallback() {
                 this.tlTrigger = gsap.timeline({
@@ -783,7 +783,7 @@ const script = () => {
             fetchData(type) {
                 return new Promise(async (resolve, reject) => {
                     try {
-                        let url = isStagging() ? `https://uat.gprnt.ai/api/v1/cms/${type}` : `https://dev.gprnt.ai/api/v1/cms/${type}`;
+                        let url = `https://app.gprnt.ai/api/v1/cms/${type}`;
                         const response = await fetch(url, {
                             method: 'GET',
                             headers: {
@@ -1223,7 +1223,7 @@ const script = () => {
             }
             getDetail(id) {
                 $.ajax({
-                url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://dev.gprnt.ai/api/v1/cms/pledge',
+                url: 'https://app.gprnt.ai/api/v1/cms/pledge',
                 method: "GET",
                 data: { pledge_id: id },
                 success: (data) => {
@@ -1252,14 +1252,14 @@ const script = () => {
                 this.tlTrigger = null;
                 this.badgeMap = {
                     Pledger: {
-                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187b43b7ba5414b0436_enterprise.webp",
-                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187b22ffc35efe47372_business.webp",
-                    sp:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e37187d06b59c991333e87_solution.webp"
+                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/697985297684f6ad9997e309_enterprise%202026%20pledger.png",
+                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6979852923e757f43eca70d7_business%202026%20pledger.png",
+                    sp:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529346e0a753916d962_solution%202026%20pledger.png"
                     },
                     Achiever: {
-                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e3718768e2a733fabd38b3_enterprise2.webp",
-                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e371871ab2108b60be4733_business2.webp",
-                    sp:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/68e3718700f4bf8c1a16e5f1_solution2.webp"
+                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6979852993f94c06ddbda6cd_enterprise%202026%20achiever.png",
+                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529af2ce08554a89827_business%202026%20achiever.png",
+                    sp:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529e30c2a6170e51e1e_solution%202026%20achiever.png"
                     }
                 };
             }
@@ -1294,7 +1294,7 @@ const script = () => {
             }
             async getDetail(id) {
                 $.ajax({
-                url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://dev.gprnt.ai/api/v1/cms/pledge',
+                url: 'https://app.gprnt.ai/api/v1/cms/pledge',
                 method: "GET",
                 data: { pledge_id: id },
                 success: async (data) => {
