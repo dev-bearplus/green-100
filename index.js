@@ -783,11 +783,12 @@ const script = () => {
             fetchData(type) {
                 return new Promise(async (resolve, reject) => {
                     try {
-                        let url = `https://app.gprnt.ai/api/v1/cms/${type}`;
+                        let url = isStagging() ? `https://uat.gprnt.ai/api/v1/cms/${type}` : `https://app.gprnt.ai/api/v1/cms/${type}`;
                         const response = await fetch(url, {
                             method: 'GET',
                             headers: {
-                                'Accept': 'application/json'
+                                'Accept': 'application/json',
+                                ...(isStagging() ? {'cookie': 'uat.gprnt.ai'} : {})
                             },
                             cache: "force-cache"
                         }).then((res) => res);
@@ -1223,9 +1224,13 @@ const script = () => {
             }
             getDetail(id) {
                 $.ajax({
-                url: 'https://app.gprnt.ai/api/v1/cms/pledge',
+                url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://app.gprnt.ai/api/v1/cms/pledge',
                 method: "GET",
                 data: { pledge_id: id },
+                headers: {
+                    'Accept': 'application/json',
+                    ...(isStagging() ? {'cookie': 'uat.gprnt.ai'} : {})
+                },
                 success: (data) => {
                     window.location.href = `/pledger?id=${id}`;
                 },
@@ -1294,8 +1299,12 @@ const script = () => {
             }
             async getDetail(id) {
                 $.ajax({
-                url: 'https://app.gprnt.ai/api/v1/cms/pledge',
+                url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://app.gprnt.ai/api/v1/cms/pledge',
                 method: "GET",
+                headers: {
+                    'Accept': 'application/json',
+                    ...(isStagging() ? {'cookie': 'uat.gprnt.ai'} : {})
+                },
                 data: { pledge_id: id },
                 success: async (data) => {
                     if(data['status'] == 'Achiever') {
