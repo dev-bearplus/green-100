@@ -16,6 +16,7 @@ const script = () => {
         let currentUrl = window.location.href;
         return currentUrl.includes('webflow.io')
     }
+    const domainApi = isStagging() ? 'https://uat.gprnt.ai' : 'https://app.gprnt.ai';
     const cvUnit = (val, unit) => {
         let result;
         switch (true) {
@@ -88,10 +89,10 @@ const script = () => {
                 }
             });
             tl
-                .to('.loading-logo-path', {opacity: 1, duration: .4})
-                .fromTo('.loading-logo-path', {strokeDasharray: "0 15px"}, { strokeDasharray: "1 15px", duration: .8, ease: 'power1.in'}, '<=.2')
-                .to('.loading', {yPercent: -100, duration: .6, ease: 'power4.in'})
-                .to('.loading-logo', {opacity: 0, duration: .6, }, '<=0.6')
+                .to('.loading-logo-path', { opacity: 1, duration: .4 })
+                .fromTo('.loading-logo-path', { strokeDasharray: "0 15px" }, { strokeDasharray: "1 15px", duration: .8, ease: 'power1.in' }, '<=.2')
+                .to('.loading', { yPercent: -100, duration: .6, ease: 'power4.in' })
+                .to('.loading-logo', { opacity: 0, duration: .6, }, '<=0.6')
             // if(viewport.w > 991) {
             //         // .to('html', {'--col-1': '0vh', duration: 1.2, ease: 'power1.out'}, `>=.2`)
             //         // .to('html', {'--col-2': '0vh', duration: 1.2 - .1, ease: 'power1.out'}, `<=${.1}`)
@@ -129,7 +130,7 @@ const script = () => {
             //         .to('html', {'--col-4': '0vh', duration: .8 - .1 * 3, ease: 'power1.out'}, `<=${.1}`)
             // }
         }
-        
+
     }
     customElements.define('loading-wrap', Loading);
     class Header extends HTMLElement {
@@ -234,6 +235,60 @@ const script = () => {
     customElements.define('popup-component', Popup);
 
     const HomePage = {
+        'home-about-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                // get data from api
+                $.ajax({
+                    url: `${domainApi}/api/v1/cms/items/stats`,
+                    method: "GET",
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        $('[data-fetch]').each((idx, el) => {
+                            let key = $(el).attr('data-fetch');
+                            switch (key) {
+                                case 'chains':
+                                    let chains = data.data.no_ent_pledged + data.data.no_ent_achieved;
+                                    $(el).text(chains);
+                                    break;
+                                case 'sme':
+                                    let smes = data.data.no_sme_pledged + data.data.no_sme_achieved;
+                                    $(el).text(smes);
+                                    break;
+                                case 'companies':
+                                    $(el).text(data.data.no_sme_achieved);
+                                    break;
+                            }
+                        })
+                    },
+                    error: (xhr, status, error) => {
+                        console.error("Lỗi khi gọi API:", error);
+                    }
+                });
+            }
+        },
         'home-faq-wrap': class extends HTMLElement {
             constructor() {
                 super();
@@ -311,8 +366,8 @@ const script = () => {
                 this.interact();
             }
             setup() {
-                if(viewport.w < 768){
-                    if($('.home-partner-main-item').length > 10){
+                if (viewport.w < 768) {
+                    if ($('.home-partner-main-item').length > 10) {
                         $('.home-partner-viewmore').show();
                         $('.home-partner-main-item').slice(10).hide();
                         $('.home-partner-viewmore').on('click', () => {
@@ -323,7 +378,7 @@ const script = () => {
                 }
             }
             interact() {
-                
+
             }
             destroy() {
                 this.tlTrigger.kill();
@@ -466,12 +521,12 @@ const script = () => {
                 let offsetRatio = viewport.w > 991 ? .75 : .85;
                 let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
                 let remainHeight = (window.innerHeight - stickHeight);
-                gsap.set(this.querySelector('.home-hiw-sticky'), {'top': remainHeight * offsetRatio});
+                gsap.set(this.querySelector('.home-hiw-sticky'), { 'top': remainHeight * offsetRatio });
                 let tl = gsap.timeline({
                     scrollTrigger: {
                         trigger: this.querySelector('.home-hiw-main'),
                         start: `top-=${stickHeight} top+=${remainHeight * offsetRatio}`,
-                        end: `bottom bottom-=${remainHeight * ( 1 - offsetRatio )}`,
+                        end: `bottom bottom-=${remainHeight * (1 - offsetRatio)}`,
                         scrub: true,
                         onUpdate: ((tlPrg) => {
                             let prog = tlPrg.progress * this.allHeadItems.length;
@@ -493,10 +548,10 @@ const script = () => {
                     let headDis = item.querySelectorAll('.home-hiw-item-card')[0].querySelector('.home-hiw-item-card-top').clientHeight;
 
                     tl
-                    .to(item, {'transform': 'none', duration: fadeDur, ease: 'power1.out'}, idx * (fadeDur + 1))
-                    .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: headDis * -1, scale: .95, duration: 1}, '>=0')
-                    .to(item.querySelectorAll('.home-hiw-item-card')[1], {y: dis * -1, duration: 1,'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)'}, '<=0')
-                    .to(item, {'transform': 'none', duration: fadeDur, ease: 'power1.out'}, '>=0')
+                        .to(item, { 'transform': 'none', duration: fadeDur, ease: 'power1.out' }, idx * (fadeDur + 1))
+                        .to(item.querySelectorAll('.home-hiw-item-card')[0], { y: headDis * -1, scale: .95, duration: 1 }, '>=0')
+                        .to(item.querySelectorAll('.home-hiw-item-card')[1], { y: dis * -1, duration: 1, 'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)' }, '<=0')
+                        .to(item, { 'transform': 'none', duration: fadeDur, ease: 'power1.out' }, '>=0')
                 })
                 this.activeHead(0)
                 this.allHeadItems.forEach((item, idx) => {
@@ -514,17 +569,17 @@ const script = () => {
                     })
                 })
                 let headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
-                gsap.set('.home-hiw-text-wrap', {'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight})
-                gsap.set('.home-hiw-sticky', {marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1})
+                gsap.set('.home-hiw-text-wrap', { 'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight })
+                gsap.set('.home-hiw-sticky', { marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1 })
                 function updateOnResize() {
                     offsetRatio = viewport.w > 991 ? .75 : .85;
                     stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
                     remainHeight = (window.innerHeight - stickHeight);
-                    gsap.set(this.querySelector('.home-hiw-sticky'), {'top': remainHeight * offsetRatio});
+                    gsap.set(this.querySelector('.home-hiw-sticky'), { 'top': remainHeight * offsetRatio });
                     ScrollTrigger.refresh()
                     headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
-                    gsap.set('.home-hiw-text-wrap', {'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight})
-                    gsap.set('.home-hiw-sticky', {marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1})
+                    gsap.set('.home-hiw-text-wrap', { 'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight })
+                    gsap.set('.home-hiw-sticky', { marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1 })
                 }
                 $(window).on('resize', updateOnResize.bind(this))
             }
@@ -707,7 +762,7 @@ const script = () => {
             }
 
             setup() {
-                if(viewport.w < 992) {
+                if (viewport.w < 992) {
                     $('.tp-event-blog-cms').addClass('swiper');
                     $('.tp-event-blog-list').addClass('swiper-wrapper');
                     $('.tp-event-blog-item').addClass('swiper-slide');
@@ -752,7 +807,7 @@ const script = () => {
                     industry: [],
                     category: []
                 }
-                this.query = { type: 'enterprise', limit: 10, page: 1 }
+                this.query = { type: 'sme', limit: 10, page: 1 }
             }
             connectedCallback() {
                 this.tlTrigger = gsap.timeline({
@@ -772,8 +827,16 @@ const script = () => {
                 this.interact();
             }
             setup() {
-
-                if(viewport.w < 768) {
+                console.log(this.query)
+                this.fetchLeaderBoard().then(({ data, pagination }) => {
+                    this.updateData(data);
+                    this.updatePagination(pagination);
+                }).catch((error) => {
+                    if (error.message !== 'Request already in progress') {
+                        console.error('Failed to fetch leaderboard:', error);
+                    }
+                });
+                if (viewport.w < 768) {
                     $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
                 }
                 else {
@@ -783,12 +846,12 @@ const script = () => {
             fetchData(type) {
                 return new Promise(async (resolve, reject) => {
                     try {
-                        let url = isStagging() ? `https://uat.gprnt.ai/api/v1/cms/${type}` : `https://app.gprnt.ai/api/v1/cms/${type}`;
+                        let url = `${domainApi}/api/v1/cms/${type}`;
                         const response = await fetch(url, {
                             method: 'GET',
                             headers: {
                                 'Accept': 'application/json',
-                                ...(isStagging() ? {'cookie': 'uat.gprnt.ai'} : {})
+                                ...(isStagging() ? { 'cookie': 'uat.gprnt.ai' } : {})
                             },
                             cache: "force-cache"
                         }).then((res) => res);
@@ -860,11 +923,11 @@ const script = () => {
                 return await this.fetchData(`pledge?pledge_id=${id}`);
             }
             interact() {
-                if(viewport.w < 768) {
-                    $('.part-pled-dropdown-filter').on('click', function(e) {
+                if (viewport.w < 768) {
+                    $('.part-pled-dropdown-filter').on('click', function (e) {
                         e.preventDefault();
                         $('.part-pled-filters-form-inner').toggleClass('active');
-                        
+
                         $(this).toggleClass('active');
                     })
                 }
@@ -884,7 +947,7 @@ const script = () => {
                     },
                     toggle: (target) => {
                         let dropdown = $(target).parent();
-                        if(dropdown.hasClass('active')){
+                        if (dropdown.hasClass('active')) {
                             dropdown.removeClass('active');
                         }
                         else {
@@ -927,7 +990,7 @@ const script = () => {
                     else {
                         delete this.query[key];
                     }
-                    this.fetchLeaderBoard().then(({data, pagination}) => {
+                    this.fetchLeaderBoard().then(({ data, pagination }) => {
                         this.updateData(data);
                         this.updatePagination(pagination);
                     }).catch((error) => {
@@ -936,51 +999,47 @@ const script = () => {
                         }
                     });
                 })
-                // $('.part-pled-dropdown-link.check-all').click();
-                // $('[data-filter="pledge_status"] .part-pled-dropdown-link').click();
                 $(window).on('click', (e) => {
                     if (!$(this).find('.part-pled-dropdown-link:hover').length)
                         if (!$(this).find('.part-pled-dropdown-toggle:hover').length) {
                             dropdownAct.close();
                         }
                 })
-
-                $(this).find('.part-pled-tab').on('click', (e) => {
-                    e.preventDefault();
-                    $(e.target).addClass('active').siblings().removeClass('active');
-                    let typeTab = $(e.target).attr('data-type');
-                    if(typeTab == 'sp') {
-                        delete this.query['industry'];
-                        let categories = this.updateActiveDropdown('category');
-                        console.log(categories)
-                        this.query = { ...this.query, 'category': categories.join(',') };
-                        $('[data-table-head]').removeClass('show');
-                        $('[data-table-head="category"]').addClass('show');
-                        $('.part-pled-dropdown-item').removeClass('show');
-                        $('.part-pled-dropdown-item[data-filter="category"]').addClass('show');
-                    }
-                    else {
-                        delete this.query['category'];
-                        let industries = this.updateActiveDropdown('industry');
-                        this.query = { ...this.query, 'industry': industries.join(',') };
-                        $('[data-table-head]').removeClass('show');
-                        $('[data-table-head="industry"]').addClass('show');
-                        $('.part-pled-dropdown-item').removeClass('show');
-                        $('.part-pled-dropdown-item[data-filter="industry"]').addClass('show');
-                    }
-                    this.query = { ...this.query, type: typeTab, page: 1 };
-                    console.log(this.query  )
-                    this.fetchLeaderBoard().then(({data, pagination}) => {
-                        this.updateData(data);
-                        this.updatePagination(pagination);
-                    }).catch((error) => {
-                        if (error.message !== 'Request already in progress') {
-                            console.error('Failed to fetch leaderboard:', error);
-                        }
-                    });
-                })
-                $(this).find('.part-pled-tab').eq(0).trigger('click');
-
+                // $(this).find('.part-pled-tab').on('click', (e) => {
+                //     e.preventDefault();
+                //     $(e.target).addClass('active').siblings().removeClass('active');
+                //     let typeTab = $(e.target).attr('data-type');
+                //     if (typeTab == 'sp') {
+                //         delete this.query['industry'];
+                //         let categories = this.updateActiveDropdown('category');
+                //         console.log(categories)
+                //         this.query = { ...this.query, 'category': categories.join(',') };
+                //         $('[data-table-head]').removeClass('show');
+                //         $('[data-table-head="category"]').addClass('show');
+                //         $('.part-pled-dropdown-item').removeClass('show');
+                //         $('.part-pled-dropdown-item[data-filter="category"]').addClass('show');
+                //     }
+                //     else {
+                //         delete this.query['category'];
+                //         let industries = this.updateActiveDropdown('industry');
+                //         this.query = { ...this.query, 'industry': industries.join(',') };
+                //         $('[data-table-head]').removeClass('show');
+                //         $('[data-table-head="industry"]').addClass('show');
+                //         $('.part-pled-dropdown-item').removeClass('show');
+                //         $('.part-pled-dropdown-item[data-filter="industry"]').addClass('show');
+                //     }
+                //     this.query = { ...this.query, type: typeTab, page: 1 };
+                //     console.log(this.query)
+                //     this.fetchLeaderBoard().then(({ data, pagination }) => {
+                //         this.updateData(data);
+                //         this.updatePagination(pagination);
+                //     }).catch((error) => {
+                //         if (error.message !== 'Request already in progress') {
+                //             console.error('Failed to fetch leaderboard:', error);
+                //         }
+                //     });
+                // })
+                // $(this).find('.part-pled-tab').eq(0).trigger('click');
                 $(this).find('.part-pled-table-pagin-arrow').on('click', (e) => {
                     e.preventDefault();
                     if ($(e.target).hasClass('prev')) {
@@ -1001,7 +1060,7 @@ const script = () => {
                     $(this).find('.part-pled-table-pagin-page').removeClass('active');
                     $(this).find('.part-pled-table-pagin-page').eq(this.currentPage - 1).addClass('active');
 
-                    this.query = {  ...this.query, page: this.currentPage };
+                    this.query = { ...this.query, page: this.currentPage };
                     this.fetchLeaderBoard().then(({ data }) => {
                         this.updateData(data);
                     }).catch((error) => {
@@ -1025,29 +1084,13 @@ const script = () => {
                     });
                 }, 500))
             }
-            updateActiveDropdown(filterType){
-                let filterArr =[];
-                $(`[data-filter = "${filterType}"] .checkbox-field.active .txt`).each((idx, item)=> {
+            updateActiveDropdown(filterType) {
+                let filterArr = [];
+                $(`[data-filter = "${filterType}"] .checkbox-field.active .txt`).each((idx, item) => {
                     filterArr.push($(item).text());
                 })
                 return filterArr;
             }
-            // scrollToTop() {
-            //     let elem = $('.part-pled-stick');
-            //     let heightHeader = $('.header').outerHeight(); 
-            //     if (elem.length) {
-            //         let elemTop = elem.offset().top;
-            //         let elemHeight = elem.height();
-            //         let scrollTop = $(window).scrollTop();
-            //         if (elemTop - scrollTop <= heightHeader + elemHeight){
-            //             console.log('khanh')
-            //             lenis.scrollTo('.part-pled-stick', {
-            //             duration: 0.6,
-            //             offset: heightHeader + elemHeight,
-            //             });
-            //         }
-            //     }
-            // }
             updateData(data) {
                 $(this).find('.part-pled-table-list').empty();
                 data.forEach((item) => {
@@ -1078,12 +1121,12 @@ const script = () => {
                                     year: 'numeric'
                                 }) : '-');
                             }
-                            else if(key =='industry'){
-                                if($('.part-pled-tab.active').attr('data-type') == 'sp'){
-                                    $(row).find(`[data-value="${key}"] .txt`).text(item['primary_service_type']? item['primary_service_type'] : '-');
+                            else if (key == 'industry') {
+                                if ($('.part-pled-tab.active').attr('data-type') == 'sp') {
+                                    $(row).find(`[data-value="${key}"] .txt`).text(item['primary_service_type'] ? item['primary_service_type'] : '-');
                                 }
                                 else {
-                                 $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                                    $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
                                 }
                             }
                             else {
@@ -1104,30 +1147,30 @@ const script = () => {
 
                 if (totalPages <= maxVisible) {
                     for (let i = 2; i <= totalPages; i++) {
-                    pages.push(i);
+                        pages.push(i);
                     }
                 } else {
                     if (currentPage <= 3) {
-                    for (let i = 2; i <= 3; i++) {
-                        pages.push(i);
-                    }
-                    pages.push('...');
-                    pages.push(totalPages - 1);
-                    pages.push(totalPages);
+                        for (let i = 2; i <= 3; i++) {
+                            pages.push(i);
+                        }
+                        pages.push('...');
+                        pages.push(totalPages - 1);
+                        pages.push(totalPages);
                     }
                     else if (currentPage >= totalPages - 2) {
-                    pages.push('...');
-                    for (let i = totalPages - 2; i <= totalPages; i++) {
-                        pages.push(i);
-                    }
+                        pages.push('...');
+                        for (let i = totalPages - 2; i <= totalPages; i++) {
+                            pages.push(i);
+                        }
                     }
                     else {
-                    pages.push('...');
-                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-                        pages.push(i);
-                    }
-                    pages.push('...');
-                    pages.push(totalPages);
+                        pages.push('...');
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                            pages.push(i);
+                        }
+                        pages.push('...');
+                        pages.push(totalPages);
                     }
                 }
 
@@ -1137,7 +1180,7 @@ const script = () => {
                 this.currentPage = pagination.currentPage;
                 this.totalPages = pagination.totalPages;
                 $('[data-pagi-total]').text(this.totalPages)
-                if(viewport.w > 767){
+                if (viewport.w > 767) {
                     $(this).find('.part-pled-table-pagin-list').empty();
                 }
                 $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
@@ -1166,9 +1209,9 @@ const script = () => {
                             totalPages: this.totalPages
                         }, query);
                     });
-                    if(viewport.w > 767){
+                    if (viewport.w > 767) {
                         $(this).find('.part-pled-table-pagin-list').append(page);
-                    }                    
+                    }
                 });
             }
             isLoading(loading) {
@@ -1180,7 +1223,7 @@ const script = () => {
         }
     }
     const NotFoundPage = {
-       'not-found-hero-wrap': class extends HTMLElement {
+        'not-found-hero-wrap': class extends HTMLElement {
             constructor() {
                 super();
                 this.tlTrigger = null;
@@ -1217,27 +1260,27 @@ const script = () => {
                 }
             }
             notFound() {
-                history.replaceState({},'',`/404`)
+                history.replaceState({}, '', `/404`)
                 $('title').text('Not Found')
                 $('.body-inner').removeAttr('data-init-hidden')
                 return;
             }
             getDetail(id) {
                 $.ajax({
-                url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://app.gprnt.ai/api/v1/cms/pledge',
-                method: "GET",
-                data: { pledge_id: id },
-                headers: {
-                    'Accept': 'application/json',
-                    ...(isStagging() ? {'cookie': 'uat.gprnt.ai'} : {})
-                },
-                success: (data) => {
-                    window.location.href = `/pledger?id=${id}`;
-                },
-                error: (xhr, status, error) => {
-                    console.error("Lỗi khi gọi API:", error);
-                    this.notFound();
-                }
+                    url: `${domainApi}/api/v1/cms/pledge`,
+                    method: "GET",
+                    data: { pledge_id: id },
+                    headers: {
+                        'Accept': 'application/json',
+                        ...(isStagging() ? { 'cookie': 'uat.gprnt.ai' } : {})
+                    },
+                    success: (data) => {
+                        window.location.href = `/pledger?id=${id}`;
+                    },
+                    error: (xhr, status, error) => {
+                        console.error("Lỗi khi gọi API:", error);
+                        this.notFound();
+                    }
                 });
             }
             destroy() {
@@ -1251,20 +1294,20 @@ const script = () => {
         },
     }
     const ParticipantDetailPage = {
-       'part-dl-hero-wrap': class extends HTMLElement {
+        'part-dl-hero-wrap': class extends HTMLElement {
             constructor() {
                 super();
                 this.tlTrigger = null;
                 this.badgeMap = {
                     Pledger: {
-                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/697985297684f6ad9997e309_enterprise%202026%20pledger.png",
-                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6979852923e757f43eca70d7_business%202026%20pledger.png",
-                    sp:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529346e0a753916d962_solution%202026%20pledger.png"
+                        enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/697985297684f6ad9997e309_enterprise%202026%20pledger.png",
+                        sme: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6979852923e757f43eca70d7_business%202026%20pledger.png",
+                        sp: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529346e0a753916d962_solution%202026%20pledger.png"
                     },
                     Achiever: {
-                    enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6979852993f94c06ddbda6cd_enterprise%202026%20achiever.png",
-                    sme:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529af2ce08554a89827_business%202026%20achiever.png",
-                    sp:   "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529e30c2a6170e51e1e_solution%202026%20achiever.png"
+                        enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6979852993f94c06ddbda6cd_enterprise%202026%20achiever.png",
+                        sme: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529af2ce08554a89827_business%202026%20achiever.png",
+                        sp: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529e30c2a6170e51e1e_solution%202026%20achiever.png"
                     }
                 };
             }
@@ -1299,69 +1342,69 @@ const script = () => {
             }
             async getDetail(id) {
                 $.ajax({
-                url: isStagging() ? 'https://uat.gprnt.ai/api/v1/cms/pledge' : 'https://app.gprnt.ai/api/v1/cms/pledge',
-                method: "GET",
-                headers: {
-                    'Accept': 'application/json',
-                    ...(isStagging() ? {'cookie': 'uat.gprnt.ai'} : {})
-                },
-                data: { pledge_id: id },
-                success: async (data) => {
-                    if(data['status'] == 'Achiever') {
-                        $('.part-dl-hero').addClass('part-dl-hero-achiever');
-                    }
-                    console.log('khanh' +data['website_url'])
-                    if(data['industry']== '' || !data['website_url']){
-                        $('.part-dl-hero-social-item-space').hide();
-                    }
-                   $('[data-key]').each(async (idx, item) => {
-                    let key = $(item).attr('data-key');
-                    if(!data[key] && key != 'info-img'){
-                        $(item).parent().hide();
-                        return;
-                    }
-                    else if(key == 'logo_url'){
-                        const isValidImage = await this.checkImageWithAjax(data[key]);
-                        console.log(isValidImage);
-                        if(isValidImage){
-                            $(item).attr('src', data[key])
+                    url: `${domainApi}/api/v1/cms/pledge`,
+                    method: "GET",
+                    headers: {
+                        'Accept': 'application/json',
+                        ...(isStagging() ? { 'cookie': 'uat.gprnt.ai' } : {})
+                    },
+                    data: { pledge_id: id },
+                    success: async (data) => {
+                        if (data['status'] == 'Achiever') {
+                            $('.part-dl-hero').addClass('part-dl-hero-achiever');
                         }
-                        else {
-                            $(item).parent().hide();
+                        console.log('khanh' + data['website_url'])
+                        if (data['industry'] == '' || !data['website_url']) {
+                            $('.part-dl-hero-social-item-space').hide();
                         }
+                        $('[data-key]').each(async (idx, item) => {
+                            let key = $(item).attr('data-key');
+                            if (!data[key] && key != 'info-img') {
+                                $(item).parent().hide();
+                                return;
+                            }
+                            else if (key == 'logo_url') {
+                                const isValidImage = await this.checkImageWithAjax(data[key]);
+                                console.log(isValidImage);
+                                if (isValidImage) {
+                                    $(item).attr('src', data[key])
+                                }
+                                else {
+                                    $(item).parent().hide();
+                                }
+                            }
+                            else if (key == 'type_of_company') {
+                                let type = data[key];
+                                if (type == 'sp') {
+                                    $(item).text('Solution')
+                                }
+                                else if (type == 'sme') {
+                                    $(item).text("Business")
+                                }
+                                else {
+                                    $(item).text('Enterprise')
+                                }
+                            }
+                            else if (key == 'pledge_issued_date' || key == 'pledge_expiry_date') {
+                                $(item).text(this.formatDate(data[key]))
+                            }
+                            else if (key == 'website_url') {
+                                $(item).attr('href', data[key]);
+                                $(item).find('.txt').text(this.cleanLink(data[key]));
+                            }
+                            else if (key == 'info-img') {
+                                const badgeUrl = this.getBadgeImage(data.status, data.type_of_company);
+                                console.log(badgeUrl)
+                                $(item).attr('src', badgeUrl)
+                            }
+                            else {
+                                $(item).text(data[key])
+                            }
+                        })
+                    },
+                    error: (xhr, status, error) => {
+                        console.error("Lỗi khi gọi API:", error);
                     }
-                    else if(key == 'type_of_company'){
-                        let type  = data[key];
-                        if(type == 'sp'){
-                            $(item).text('Solution')
-                        }
-                        else if(type == 'sme') {
-                            $(item).text("Business")
-                        }
-                        else {
-                            $(item).text('Enterprise')
-                        }
-                    }
-                    else if(key == 'pledge_issued_date' || key =='pledge_expiry_date') {
-                        $(item).text( this.formatDate(data[key]) )
-                    }
-                    else if(key == 'website_url') {
-                        $(item).attr('href', data[key]);
-                        $(item).find('.txt').text(this.cleanLink(data[key]));
-                    }
-                    else if(key == 'info-img') {
-                        const badgeUrl = this.getBadgeImage(data.status, data.type_of_company);
-                        console.log(badgeUrl)
-                        $(item).attr('src', badgeUrl)
-                    }
-                    else {
-                        $(item).text(data[key])
-                    }
-                   })
-                },
-                error: (xhr, status, error) => {
-                    console.error("Lỗi khi gọi API:", error);
-                }
                 });
             }
             getBadgeImage(status, type) {
@@ -1376,10 +1419,10 @@ const script = () => {
                 });
             }
             formatDate(dateStr) {
-                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-                const date = new Date(dateStr); 
+                const date = new Date(dateStr);
 
                 const day = String(date.getDate()).padStart(2, '0');
                 const month = months[date.getMonth()];
@@ -1400,7 +1443,7 @@ const script = () => {
         },
     }
     const AboutPage = {
-       'about-mission-wrap': class extends HTMLElement {
+        'about-mission-wrap': class extends HTMLElement {
             constructor() {
                 super();
                 this.tlTrigger = null;
@@ -1422,7 +1465,7 @@ const script = () => {
                 this.setup();
             }
             setup() {
-                let content = new SplitType('.about-mission-sub-txt', {types: 'lines, words, chars', lineClass: 'bp-line'});
+                let content = new SplitType('.about-mission-sub-txt', { types: 'lines, words, chars', lineClass: 'bp-line' });
                 let tl = new gsap.timeline({
                     scrollTrigger: {
                         trigger: '.about-mission-sub',
@@ -1431,9 +1474,9 @@ const script = () => {
                         scrub: 1,
                     }
                 })
-                tl.to(content.chars, {color: "#1A3628", duration: 1, stagger: .02})
+                tl.to(content.chars, { color: "#1A3628", duration: 1, stagger: .02 })
             }
-           
+
             destroy() {
                 this.tlTrigger.kill();
                 if (this.loadingTimeout) {
@@ -1483,7 +1526,7 @@ const script = () => {
                     }
                 });
             }
-           
+
             destroy() {
                 this.tlTrigger.kill();
                 if (this.loadingTimeout) {
