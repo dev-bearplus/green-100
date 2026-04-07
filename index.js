@@ -7,6 +7,31 @@ const script = () => {
     const parseRem = (input) => {
         return input / 10 * parseFloat($('html').css('font-size'))
     }
+    class Marquee {
+        constructor(list, duration = 40) {
+            this.list = list;
+            this.duration = duration;
+        }
+        setup(isReverse) {
+            console.log()
+            let itemClone = this.list.find('[data-marquee="item"]').clone();
+            let itemWidth = this.list.find('[data-marquee="item"]').width();
+            const cloneAmount = Math.ceil(viewport.w / itemWidth) + 1;
+            this.list.html("");
+            new Array(cloneAmount).fill().forEach(() => {
+                let html = itemClone.clone();
+                html.css(
+                    "animation-duration",
+                    `${Math.ceil(itemWidth / this.duration)}s`,
+                );
+                if (isReverse) {
+                    html.css("animation-direction", "reverse");
+                }
+                html.addClass("anim-marquee");
+                this.list.append(html);
+            });
+        }
+    }
     const viewport = {
         w: window.innerWidth,
         h: window.innerHeight,
@@ -235,6 +260,19 @@ const script = () => {
     customElements.define('popup-component', Popup);
 
     const HomePage = {
+        'home-hero-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.el = $('.home-hero');
+            }
+            connectedCallback() {
+                this.setup();
+            }
+            setup() {
+                let marquee = new Marquee($(this.el).find('[data-marquee="list"]'), 40);
+                marquee.setup(false);
+            }
+        },
         'home-about-wrap': class extends HTMLElement {
             constructor() {
                 super();
@@ -462,25 +500,30 @@ const script = () => {
                 }
             }
             setup() {
-                let swiperEvent = new Swiper(".home-event-cms", {
-                    slidesPerView: 'auto',
-                    spaceBetween: parseRem(8),
-                    navigation: {
-                        prevEl: ".home-event-control-item-prev",
-                        nextEl: ".home-event-control-item-next",
-                    },
-                    pagination: {
-                        el: '.home-event-pagi',
-                        bulletClass: 'home-event-pagi-item',
-                        bulletActiveClass: 'active',
-                        clickable: true,
-                    },
-                    breakpoints: {
-                        767: {
-                            spaceBetween: parseRem(16),
+                if (viewport.w < 992) {
+                    $('.home-event-cms').addClass('swiper');
+                    $('.home-event-list').addClass('swiper-wrapper');
+                    $('.home-event-item').addClass('swiper-slide');
+                    let swiperEvent = new Swiper(".home-event-cms", {
+                        slidesPerView: 'auto',
+                        spaceBetween: parseRem(8),
+                        navigation: {
+                            prevEl: ".home-event-control-item-prev",
+                            nextEl: ".home-event-control-item-next",
+                        },
+                        pagination: {
+                            el: '.home-event-pagi',
+                            bulletClass: 'home-event-pagi-item',
+                            bulletActiveClass: 'active',
+                            clickable: true,
+                        },
+                        breakpoints: {
+                            767: {
+                                spaceBetween: parseRem(16),
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
             interact() {
 
