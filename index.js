@@ -1578,6 +1578,159 @@ const script = () => {
                 }
             }
         },
+        'about-partner-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+                this.swiperDetail = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                this.interact();
+            }
+            setup() {
+                let swiperPartner = new Swiper(".about-partner-cms", {
+                    slidesPerView: 'auto',
+                    spaceBetween: parseRem(8),
+                    navigation: {
+                        prevEl: ".about-partner-control-item.item-prev",
+                        nextEl: ".about-partner-control-item.item-next",
+                    },
+                    pagination: {
+                        el: '.about-partner-cms-pagi',
+                        bulletClass: 'about-partner-cms-pagi-item',
+                        bulletActiveClass: 'active',
+                        clickable: true,
+                    },
+                    breakpoints: {
+                        767: {
+                            spaceBetween: parseRem(16),
+                            slidesPerView: 2,
+                        },
+                        991: {
+                            spaceBetween: parseRem(24),
+                            slidesPerView: 3,
+                        }
+                    }
+                });
+                this.swiperDetail = new Swiper(".about-popup-cms", {
+                    slidesPerView: 1,
+                    spaceBetween: parseRem(16),
+                    //effect fade
+                    effect: 'fade',
+                    fadeEffect: {
+                        crossFade: true,
+                    },
+                    navigation: {
+                        prevEl: ".about-popup-navi-item.item-prev",
+                        nextEl: ".about-popup-navi-item.item-next",
+                    },
+                    on: {
+                        init: function (swiper) {
+                            $('.number-total').text(swiper.slides.length);
+                        },
+                        slideChange: function (swiper) {
+                            $('.number-current').text(swiper.realIndex + 1);
+                        }
+                    }
+                });
+            }
+            interact() {
+                $('.about-partner-item-read').on('click', (e) => {
+                    let index = $(e.currentTarget).closest('.about-partner-item').index();
+                    this.swiperDetail.slideTo(index);
+                    $('.about-popup').addClass('active');
+                })
+                $('.about-popup-close').on('click', () => {
+                    $('.about-popup').removeClass('active');
+                })
+                $('.about-popup').on('click', (e) => {
+                    if ($(e.target).closest('.about-popup-main').length === 0) {
+                        $('.about-popup').removeClass('active');
+                    }
+                })
+            }
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+                if (this.swiperDetail) {
+                    this.swiperDetail.destroy();
+                }
+            }
+        },
+        'home-event-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+            setup() {
+                if (viewport.w < 992) {
+                    $('.home-event-cms').addClass('swiper');
+                    $('.home-event-list').addClass('swiper-wrapper');
+                    $('.home-event-item').addClass('swiper-slide');
+                    let swiperEvent = new Swiper(".home-event-cms", {
+                        slidesPerView: 'auto',
+                        spaceBetween: parseRem(8),
+                        navigation: {
+                            prevEl: ".home-event-control-item-prev",
+                            nextEl: ".home-event-control-item-next",
+                        },
+                        pagination: {
+                            el: '.home-event-pagi',
+                            bulletClass: 'home-event-pagi-item',
+                            bulletActiveClass: 'active',
+                            clickable: true,
+                        },
+                        breakpoints: {
+                            767: {
+                                spaceBetween: parseRem(16),
+                            }
+                        }
+                    });
+                }
+            }
+            interact() {
+
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
     }
     class PageManager {
         constructor(page) {
