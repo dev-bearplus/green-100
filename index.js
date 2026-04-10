@@ -500,6 +500,13 @@ const script = () => {
                 }
             }
             setup() {
+                $('.home-event-item').each(function () {
+                    let item = $(this);
+                    let hasExternalLink = item.find('.external-link').length > 0;
+                    if (hasExternalLink) {
+                        item.find('.home-event-item-inner').attr('target', '_blank');
+                    }
+                })
                 if (viewport.w < 992) {
                     $('.home-event-cms').addClass('swiper');
                     $('.home-event-list').addClass('swiper-wrapper');
@@ -526,7 +533,6 @@ const script = () => {
                 }
             }
             interact() {
-
             }
             destroy() {
                 this.tlTrigger.kill();
@@ -1737,6 +1743,13 @@ const script = () => {
                 }
             }
             setup() {
+                $('.home-event-item').each(function () {
+                    let item = $(this);
+                    let hasExternalLink = item.find('.external-link').length > 0;
+                    if (hasExternalLink) {
+                        item.find('.home-event-item-inner').attr('target', '_blank');
+                    }
+                })
                 if (viewport.w < 992) {
                     $('.home-event-cms').addClass('swiper');
                     $('.home-event-list').addClass('swiper-wrapper');
