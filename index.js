@@ -528,6 +528,9 @@ const script = () => {
                     let hasExternalLink = item.find('.external-link').length > 0;
                     if (hasExternalLink) {
                         item.find('.home-event-item-inner').attr('target', '_blank');
+                        let linkExternal = item.find('.external-link').attr('data-link');
+                        console.log(linkExternal)
+                        item.find('.home-event-item-inner').attr('href', linkExternal);
                     }
                 })
                 if (viewport.w < 992) {
@@ -1773,6 +1776,7 @@ const script = () => {
                     if (hasExternalLink) {
                         item.find('.home-event-item-inner').attr('target', '_blank');
                         let linkExternal = item.find('.external-link').attr('data-link');
+                        console.log(linkExternal)
                         item.find('.home-event-item-inner').attr('href', linkExternal);
                     }
                 })
