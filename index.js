@@ -258,8 +258,8 @@ const script = () => {
         }
     }
     customElements.define('popup-component', Popup);
-
     const HomePage = {
+
         'home-hero-wrap': class extends HTMLElement {
             constructor() {
                 super();
@@ -552,139 +552,177 @@ const script = () => {
             }
             onTrigger() {
                 this.activeIndex = -1;
-                this.allHeadItems = this.querySelectorAll('.home-hiw-head-item')
-                this.allItems = this.querySelectorAll('.home-hiw-body-item');
-                if (viewport.w > 767) {
-                    this.interact();
-                } else {
-                    this.interactMb()
-                }
+                this.allItems = $('.home-hiwn-content-inner');
+                this.interact();
             }
             interact() {
-                let offsetRatio = viewport.w > 991 ? .75 : .85;
-                let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
-                let remainHeight = (window.innerHeight - stickHeight);
-                gsap.set(this.querySelector('.home-hiw-sticky'), { 'top': remainHeight * offsetRatio });
-                let tl = gsap.timeline({
-                    scrollTrigger: {
-                        trigger: this.querySelector('.home-hiw-main'),
-                        start: `top-=${stickHeight} top+=${remainHeight * offsetRatio}`,
-                        end: `bottom bottom-=${remainHeight * (1 - offsetRatio)}`,
-                        scrub: true,
-                        onUpdate: ((tlPrg) => {
-                            let prog = tlPrg.progress * this.allHeadItems.length;
-                            let index = Math.floor(prog);
-                            if (index < this.allHeadItems.length) {
-                                this.activeHead(index);
-                            }
-                        }).bind(this),
-                        invalidateOnRefresh: true
-                    },
-                    defaults: {
-                        ease: 'none'
-                    },
-                })
-                let fadeDur = .75;
-
-                this.allItems.forEach((item, idx) => {
-                    let dis = item.querySelectorAll('.home-hiw-item-card')[0].clientHeight + parseRem(8);
-                    let headDis = item.querySelectorAll('.home-hiw-item-card')[0].querySelector('.home-hiw-item-card-top').clientHeight;
-
-                    tl
-                        .to(item, { 'transform': 'none', duration: fadeDur, ease: 'power1.out' }, idx * (fadeDur + 1))
-                        .to(item.querySelectorAll('.home-hiw-item-card')[0], { y: headDis * -1, scale: .95, duration: 1 }, '>=0')
-                        .to(item.querySelectorAll('.home-hiw-item-card')[1], { y: dis * -1, duration: 1, 'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)' }, '<=0')
-                        .to(item, { 'transform': 'none', duration: fadeDur, ease: 'power1.out' }, '>=0')
-                })
-                this.activeHead(0)
-                this.allHeadItems.forEach((item, idx) => {
-                    item.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        let targetProgress = idx / 3;
-                        let scrollTrigger = tl.scrollTrigger;
-                        let startPos = scrollTrigger.start;
-                        let endPos = scrollTrigger.end;
-                        let targetScrollPos = (startPos + (endPos - startPos) * targetProgress) + parseRem(10);
-                        lenis.scrollTo(targetScrollPos, {
-                            immediate: true,
-                            force: true
-                        });
-                    })
-                })
-                let headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
-                gsap.set('.home-hiw-text-wrap', { 'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight })
-                gsap.set('.home-hiw-sticky', { marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1 })
-                function updateOnResize() {
-                    offsetRatio = viewport.w > 991 ? .75 : .85;
-                    stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
-                    remainHeight = (window.innerHeight - stickHeight);
-                    gsap.set(this.querySelector('.home-hiw-sticky'), { 'top': remainHeight * offsetRatio });
-                    ScrollTrigger.refresh()
-                    headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
-                    gsap.set('.home-hiw-text-wrap', { 'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight })
-                    gsap.set('.home-hiw-sticky', { marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1 })
-                }
-                $(window).on('resize', updateOnResize.bind(this))
-            }
-            interactMb() {
-                this.activeHead(0)
-                this.allItems.forEach((item, idx) => {
-                    // let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(83);
-                    // let itemTl = gsap.timeline({
-                    //     scrollTrigger: {
-                    //         trigger: item.querySelectorAll('.home-hiw-item-card')[0],
-                    //         start: 'center center',
-                    //         endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
-                    //         end: 'center center',
-                    //         scrub: true,
-                    //     },
-                    //     defaults: {
-                    //         ease: 'none'
-                    //     }
-                    // })
-                    // requestAnimationFrame(() => {
-                    //     itemTl
-                    //     .to(item.querySelector('.home-hiw-body-item-head'), {y: dis * 1, duration: 1})
-                    //     .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
-                    //     .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -4px 12px 0 rgba(0, 32, 16, 0.08)', duration: 1}, 0)
-                    // })
-                    let itemHeadTl = gsap.timeline({
-                        scrollTrigger: {
-                            trigger: item.querySelector('.home-hiw-body-item-head'),
-                            start: `top top+=25%`,
-                            endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
-                            end: 'bottom center',
-                            scrub: true,
-                            onUpdate: () => {
-                                this.activeHead(idx)
-                            }
-                        }
-                    })
-                    this.allHeadItems[idx].addEventListener('click', (e) => {
-                        e.preventDefault();
-                        let itemOffsetTop = this.allItems[idx].getBoundingClientRect().top + window.scrollY;
-                        let startPos = itemOffsetTop - parseRem(107);
-                        lenis.scrollTo(startPos, {
-                            duration: 1,
-                            force: true
-                        });
-                    })
-                })
-            }
-            activeHead(index) {
-                if (this.activeIndex == index) return;
-                this.activeIndex = index;
-                this.allHeadItems.forEach((item, idx) => {
-                    item.classList.toggle('active', idx == index);
-                })
-                this.allItems.forEach((item, idx) => {
-                    item.classList.toggle('active', idx == index);
+                $('.home-hiwn-tab-item').on('click', (e) => {
+                    let item = $(e.currentTarget).closest('.home-hiwn-tab-item');
+                    if (item.hasClass('active')) return;
+                    let index = item.index();
+                    item.addClass('active').siblings().removeClass('active');
+                    this.activeIndex = index;
+                    this.allItems.removeClass('active');
+                    this.allItems.eq(index).addClass('active');
                 })
             }
             destroy() {
                 this.tlTrigger.kill();
             }
-        },
+        }
+        //     'home-hiw-wrap': class extends HTMLElement {
+        //         constructor() {
+        //             super();
+        //             this.tlTrigger = null;
+        //         }
+        //         connectedCallback() {
+        //             this.tlTrigger = gsap.timeline({
+        //                 scrollTrigger: {
+        //                     trigger: this,
+        //                     start: 'top bottom+=50%',
+        //                     end: 'bottom top-=50%',
+        //                     once: true,
+        //                     onEnter: () => {
+        //                         this.onTrigger();
+        //                     }
+        //                 }
+        //             });
+        //         }
+        //         onTrigger() {
+        //             this.activeIndex = -1;
+        //             this.allHeadItems = this.querySelectorAll('.home-hiw-head-item')
+        //             this.allItems = this.querySelectorAll('.home-hiw-body-item');
+        //             if (viewport.w > 767) {
+        //                 this.interact();
+        //             } else {
+        //                 this.interactMb()
+        //             }
+        //         }
+        //         interact() {
+        //             let offsetRatio = viewport.w > 991 ? .75 : .85;
+        //             let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
+        //             let remainHeight = (window.innerHeight - stickHeight);
+        //             gsap.set(this.querySelector('.home-hiw-sticky'), { 'top': remainHeight * offsetRatio });
+        //             let tl = gsap.timeline({
+        //                 scrollTrigger: {
+        //                     trigger: this.querySelector('.home-hiw-main'),
+        //                     start: `top-=${stickHeight} top+=${remainHeight * offsetRatio}`,
+        //                     end: `bottom bottom-=${remainHeight * (1 - offsetRatio)}`,
+        //                     scrub: true,
+        //                     onUpdate: ((tlPrg) => {
+        //                         let prog = tlPrg.progress * this.allHeadItems.length;
+        //                         let index = Math.floor(prog);
+        //                         if (index < this.allHeadItems.length) {
+        //                             this.activeHead(index);
+        //                         }
+        //                     }).bind(this),
+        //                     invalidateOnRefresh: true
+        //                 },
+        //                 defaults: {
+        //                     ease: 'none'
+        //                 },
+        //             })
+        //             let fadeDur = .75;
+
+        //             this.allItems.forEach((item, idx) => {
+        //                 let dis = item.querySelectorAll('.home-hiw-item-card')[0].clientHeight + parseRem(8);
+        //                 let headDis = item.querySelectorAll('.home-hiw-item-card')[0].querySelector('.home-hiw-item-card-top').clientHeight;
+
+        //                 tl
+        //                     .to(item, { 'transform': 'none', duration: fadeDur, ease: 'power1.out' }, idx * (fadeDur + 1))
+        //                     .to(item.querySelectorAll('.home-hiw-item-card')[0], { y: headDis * -1, scale: .95, duration: 1 }, '>=0')
+        //                     .to(item.querySelectorAll('.home-hiw-item-card')[1], { y: dis * -1, duration: 1, 'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)' }, '<=0')
+        //                     .to(item, { 'transform': 'none', duration: fadeDur, ease: 'power1.out' }, '>=0')
+        //             })
+        //             this.activeHead(0)
+        //             this.allHeadItems.forEach((item, idx) => {
+        //                 item.addEventListener('click', (e) => {
+        //                     e.preventDefault();
+        //                     let targetProgress = idx / 3;
+        //                     let scrollTrigger = tl.scrollTrigger;
+        //                     let startPos = scrollTrigger.start;
+        //                     let endPos = scrollTrigger.end;
+        //                     let targetScrollPos = (startPos + (endPos - startPos) * targetProgress) + parseRem(10);
+        //                     lenis.scrollTo(targetScrollPos, {
+        //                         immediate: true,
+        //                         force: true
+        //                     });
+        //                 })
+        //             })
+        //             let headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
+        //             gsap.set('.home-hiw-text-wrap', { 'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight })
+        //             gsap.set('.home-hiw-sticky', { marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1 })
+        //             function updateOnResize() {
+        //                 offsetRatio = viewport.w > 991 ? .75 : .85;
+        //                 stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
+        //                 remainHeight = (window.innerHeight - stickHeight);
+        //                 gsap.set(this.querySelector('.home-hiw-sticky'), { 'top': remainHeight * offsetRatio });
+        //                 ScrollTrigger.refresh()
+        //                 headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
+        //                 gsap.set('.home-hiw-text-wrap', { 'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight })
+        //                 gsap.set('.home-hiw-sticky', { marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1 })
+        //             }
+        //             $(window).on('resize', updateOnResize.bind(this))
+        //         }
+        //         interactMb() {
+        //             this.activeHead(0)
+        //             this.allItems.forEach((item, idx) => {
+        //                 // let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(83);
+        //                 // let itemTl = gsap.timeline({
+        //                 //     scrollTrigger: {
+        //                 //         trigger: item.querySelectorAll('.home-hiw-item-card')[0],
+        //                 //         start: 'center center',
+        //                 //         endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
+        //                 //         end: 'center center',
+        //                 //         scrub: true,
+        //                 //     },
+        //                 //     defaults: {
+        //                 //         ease: 'none'
+        //                 //     }
+        //                 // })
+        //                 // requestAnimationFrame(() => {
+        //                 //     itemTl
+        //                 //     .to(item.querySelector('.home-hiw-body-item-head'), {y: dis * 1, duration: 1})
+        //                 //     .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
+        //                 //     .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -4px 12px 0 rgba(0, 32, 16, 0.08)', duration: 1}, 0)
+        //                 // })
+        //                 let itemHeadTl = gsap.timeline({
+        //                     scrollTrigger: {
+        //                         trigger: item.querySelector('.home-hiw-body-item-head'),
+        //                         start: `top top+=25%`,
+        //                         endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
+        //                         end: 'bottom center',
+        //                         scrub: true,
+        //                         onUpdate: () => {
+        //                             this.activeHead(idx)
+        //                         }
+        //                     }
+        //                 })
+        //                 this.allHeadItems[idx].addEventListener('click', (e) => {
+        //                     e.preventDefault();
+        //                     let itemOffsetTop = this.allItems[idx].getBoundingClientRect().top + window.scrollY;
+        //                     let startPos = itemOffsetTop - parseRem(107);
+        //                     lenis.scrollTo(startPos, {
+        //                         duration: 1,
+        //                         force: true
+        //                     });
+        //                 })
+        //             })
+        //         }
+        //         activeHead(index) {
+        //             if (this.activeIndex == index) return;
+        //             this.activeIndex = index;
+        //             this.allHeadItems.forEach((item, idx) => {
+        //                 item.classList.toggle('active', idx == index);
+        //             })
+        //             this.allItems.forEach((item, idx) => {
+        //                 item.classList.toggle('active', idx == index);
+        //             })
+        //         }
+        //         destroy() {
+        //             this.tlTrigger.kill();
+        //         }
+        //     },
     }
     const TermPage = {
         'term-main-wrap': class extends HTMLElement {
