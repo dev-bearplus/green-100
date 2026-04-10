@@ -95,6 +95,7 @@ const script = () => {
     lenis.on('scroll', ScrollTrigger.update)
     lenis.on('scroll', (inst) => {
         header.toggleSticky(inst.scroll >= header.clientHeight)
+        header.onHideDependent();
     })
 
     const pageName = $('.main-inner').attr('data-barba-namespace');
@@ -165,7 +166,9 @@ const script = () => {
             this.navEl = this.el.querySelector('.header-act');
             this.toggle = this.el.querySelector('.header-toggle-btn');
             this.allLinks = this.el.querySelectorAll('.header-link[data-link="section"]');
-            this.allFooterLinks = document.querySelectorAll('.footer-link[href^="/#"]')
+            this.allFooterLinks = document.querySelectorAll('.footer-link[href^="/#"]');
+            this.listDependent = [];
+
         }
         connectedCallback() {
             if (window.innerWidth > 767) {
@@ -219,6 +222,26 @@ const script = () => {
                 header.classList.add('on-scroll')
             } else {
                 header.classList.remove('on-scroll')
+            }
+        }
+        registerDependent(dependentEl) {
+            this.listDependent.push(dependentEl);
+        }
+        unregisterDependent(dependentEl) {
+            if (this.listDependent.includes(dependentEl)) {
+                this.listDependent = this.listDependent.filter((item) => item !== dependentEl);
+            }
+        }
+        onHideDependent() {
+            let heightHeader = $(this.el).height() - cvUnit(1, 'rem');
+            if (!$(this.el).hasClass('on-hide')) {
+                this.listDependent.forEach((item) => {
+                    $(item).css('top', heightHeader);
+                });
+            } else {
+                this.listDependent.forEach((item) => {
+                    $(item).css('top', 0);
+                });
             }
         }
         update() {
@@ -562,6 +585,7 @@ const script = () => {
                 this.interact();
             }
             interact() {
+                viewport.w < 767 && header.registerDependent('.home-hiwn-tab-wrap');
                 $('.home-hiwn-tab-item').on('click', (e) => {
                     let item = $(e.currentTarget).closest('.home-hiwn-tab-item');
                     if (item.hasClass('active')) return;
