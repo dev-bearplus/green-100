@@ -79,14 +79,7 @@ const script = () => {
         }));
     }
     let header = document.querySelector('header-component')
-    // Initialize Lenis
     const lenis = new Lenis();
-    // gsap.ticker.add((time) => {
-    //     if (lenis) {
-    //         lenis.raf(time * 1000);
-    //     }
-    // });
-    // gsap.ticker.lagSmoothing(0);
     function raf(time) {
         lenis.raf(time);
         requestAnimationFrame(raf);
@@ -99,6 +92,25 @@ const script = () => {
     })
 
     const pageName = $('.main-inner').attr('data-barba-namespace');
+
+    // Check params or hash to scroll on page load
+    window.addEventListener('load', () => {
+        let params = new URLSearchParams(window.location.search);
+        let section = params.get('section') || window.location.hash.replace('#', '');
+        if (section) {
+            let targetId = '#' + section;
+            if (document.querySelector(targetId)) {
+                setTimeout(() => {
+                    lenis.scrollTo(targetId, {
+                        immediate: true, // no smooth scroll on page load to avoid weird jumps if the user prefers, or maybe immediate: false if they want to see it scroll down. "vào trang cần scroll tới" suggests we might just jump there or do it smoothly. I'll do it smoothly.
+                        duration: 1.2,
+                        force: true
+                    });
+                }, 300);
+            }
+        }
+    });
+
     class Loading extends HTMLElement {
         constructor() {
             super();
@@ -119,42 +131,6 @@ const script = () => {
                 .fromTo('.loading-logo-path', { strokeDasharray: "0 15px" }, { strokeDasharray: "1 15px", duration: .8, ease: 'power1.in' }, '<=.2')
                 .to('.loading', { yPercent: -100, duration: .6, ease: 'power4.in' })
                 .to('.loading-logo', { opacity: 0, duration: .6, }, '<=0.6')
-            // if(viewport.w > 991) {
-            //         // .to('html', {'--col-1': '0vh', duration: 1.2, ease: 'power1.out'}, `>=.2`)
-            //         // .to('html', {'--col-2': '0vh', duration: 1.2 - .1, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-3': '0vh', duration: 1.2 - .1 * 2, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-4': '0vh', duration: 1.2 - .1 * 3, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-5': '0vh', duration: 1.2 - .1 * 4, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-6': '0vh', duration: 1.2 - .1 * 5, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-7': '0vh', duration: 1.2 - .1 * 6, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-8': '0vh', duration: 1.2 - .1 * 7, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-9': '0vh', duration: 1.2 - .1 * 8, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-10': '0vh', duration: 1.2 - .1 * 9, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-11': '0vh', duration: 1.2 - .1 * 10, ease: 'power1.out'}, `<=${.1}`)
-            //         // .to('html', {'--col-12': '0vh', duration: 1.2 - .1 * 11 , ease: 'power1.out'}, `<=${.1}`)
-            // }
-            // else if( viewport.w > 767 && viewport.w <= 991) {
-            //     tl
-            //         .to('.loading-logo-path', {opacity: 1, duration: .6})
-            //         .fromTo('.loading-logo-path', {strokeDasharray: "0 15px"}, { strokeDasharray: "1 15px", duration: 1, ease: 'power2.in'}, '<=.2')
-            //         .to('html', {'--col-1': '0vh', duration: .9, ease: 'power1.out'}, `>=.2`)
-            //         .to('html', {'--col-2': '0vh', duration: .9 - .1, ease: 'power1.out'}, `<=${.1}`)
-            //         .to('html', {'--col-3': '0vh', duration: .9 - .1 * 2, ease: 'power1.out'}, `<=${.1}`)
-            //         .to('html', {'--col-4': '0vh', duration: .9 - .1 * 3, ease: 'power1.out'}, `<=${.1}`)
-            //         .to('html', {'--col-5': '0vh', duration: .9 - .1 * 4, ease: 'power1.out'}, `<=${.1}`)
-            //         .to('html', {'--col-6': '0vh', duration: .9 - .1 * 5, ease: 'power1.out'}, `<=${.1}`)
-            //         .to('html', {'--col-7': '0vh', duration: .9 - .1 * 6, ease: 'power1.out'}, `<=${.1}`)
-            //         .to('html', {'--col-8': '0vh', duration: .9 - .1 * 7, ease: 'power1.out'}, `<=${.1}`)
-            // }
-            //  else {
-            //     tl
-            //         .to('.loading-logo-path', {opacity: 1, duration: .6})
-            //         .fromTo('.loading-logo-path', {strokeDasharray: "0 15px"}, { strokeDasharray: "1 15px", duration: 1, ease: 'power2.in'}, '<=.2')
-            //         .to('html', {'--col-1': '0vh', duration: .8, ease: 'power1.out'}, `>=.2`)
-            //         .to('html', {'--col-2': '0vh', duration: .8 - .1, ease: 'power1.out'}, `<=${.1}`)
-            //         .to('html', {'--col-3': '0vh', duration: .8 - .1 * 2, ease: 'power1.out'}, `<=${.1}`)
-            //         .to('html', {'--col-4': '0vh', duration: .8 - .1 * 3, ease: 'power1.out'}, `<=${.1}`)
-            // }
         }
 
     }
@@ -184,6 +160,34 @@ const script = () => {
             this.allLinks.forEach((item, idx) => {
                 item.addEventListener('click', (e) => {
                     this.toggleMenu();
+                    let url = new URL(item.href, window.location.origin);
+                    if (url.pathname.replace(/\/$/, '') === window.location.pathname.replace(/\/$/, '')) {
+                        let target = url.hash || (url.searchParams.has('section') ? '#' + url.searchParams.get('section') : '');
+                        if (target) {
+                            e.preventDefault();
+                            setTimeout(() => {
+                                lenis.scrollTo(target, {
+                                    duration: 1.2,
+                                    force: true
+                                });
+                            }, 300); // Give menu time to close
+                        }
+                    }
+                })
+            })
+            this.allFooterLinks.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    let url = new URL(item.href, window.location.origin);
+                    if (url.pathname.replace(/\/$/, '') === window.location.pathname.replace(/\/$/, '')) {
+                        let target = url.hash || (url.searchParams.has('section') ? '#' + url.searchParams.get('section') : '');
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, {
+                                duration: 1.2,
+                                force: true
+                            });
+                        }
+                    }
                 })
             })
             this.toggle.addEventListener('click', (e) => {
@@ -194,25 +198,31 @@ const script = () => {
         setupDesktop() {
             this.allLinks.forEach((item, idx) => {
                 item.addEventListener('click', (e) => {
-                    if (pageName === 'home') {
-                        e.preventDefault();
-                        let target = item.getAttribute('href').split('#')[1];
-                        lenis.scrollTo('#' + target, {
-                            immediate: true,
-                            force: true
-                        })
+                    let url = new URL(item.href, window.location.origin);
+                    if (url.pathname.replace(/\/$/, '') === window.location.pathname.replace(/\/$/, '')) {
+                        let target = url.hash || (url.searchParams.has('section') ? '#' + url.searchParams.get('section') : '');
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, {
+                                duration: 1.2,
+                                force: true
+                            });
+                        }
                     }
                 })
             })
             this.allFooterLinks.forEach((item, idx) => {
                 item.addEventListener('click', (e) => {
-                    if (pageName === 'home') {
-                        e.preventDefault();
-                        let target = item.getAttribute('href').split('#')[1];
-                        lenis.scrollTo('#' + target, {
-                            immediate: true,
-                            force: true
-                        })
+                    let url = new URL(item.href, window.location.origin);
+                    if (url.pathname.replace(/\/$/, '') === window.location.pathname.replace(/\/$/, '')) {
+                        let target = url.hash || (url.searchParams.has('section') ? '#' + url.searchParams.get('section') : '');
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, {
+                                duration: 1.2,
+                                force: true
+                            });
+                        }
                     }
                 })
             })
