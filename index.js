@@ -1227,7 +1227,11 @@ const script = () => {
                             else if (key === 'website_url') {
                                 if (item[key]) {
                                     $(row).find(`[data-value="${key}"] .txt`).text(item[key].replace(/^https?:\/\/(www\.)?([^\/]+)/, '$2').replace(/\/$/, ''));
-                                    $(row).find(`[data-value="${key}"] a`).attr('href', item[key]);
+                                    let hrefUrl = item[key];
+                                    if (!/^https?:\/\//i.test(hrefUrl)) {
+                                        hrefUrl = 'https://' + hrefUrl;
+                                    }
+                                    $(row).find(`[data-value="${key}"] a`).attr('href', hrefUrl);
                                 }
                                 else {
                                     $(row).find(`[data-value="${key}"] .txt`).text('-');
@@ -1513,7 +1517,11 @@ const script = () => {
                                 $(item).text(this.formatDate(data[key]))
                             }
                             else if (key == 'website_url') {
-                                $(item).attr('href', data[key]);
+                                let hrefUrl = data[key];
+                                if (hrefUrl && !/^https?:\/\//i.test(hrefUrl)) {
+                                    hrefUrl = 'https://' + hrefUrl;
+                                }
+                                $(item).attr('href', hrefUrl);
                                 $(item).find('.txt').text(this.cleanLink(data[key]));
                             }
                             else if (key == 'info-img') {
