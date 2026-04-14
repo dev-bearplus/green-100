@@ -1476,7 +1476,7 @@ const script = () => {
                             case 'Essential':
                                 $('.part-dl-hero').addClass('part-dl-hero-essential');
                                 break;
-                            case 'Silver    ':
+                            case 'Silver':
                                 $('.part-dl-hero').addClass('part-dl-hero-silver');
                                 break;
                             case 'Gold':
