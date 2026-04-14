@@ -1427,16 +1427,10 @@ const script = () => {
                 super();
                 this.tlTrigger = null;
                 this.badgeMap = {
-                    Pledger: {
-                        enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/697985297684f6ad9997e309_enterprise%202026%20pledger.png",
-                        sme: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6979852923e757f43eca70d7_business%202026%20pledger.png",
-                        sp: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529346e0a753916d962_solution%202026%20pledger.png"
-                    },
-                    Achiever: {
-                        enterprise: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6979852993f94c06ddbda6cd_enterprise%202026%20achiever.png",
-                        sme: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529af2ce08554a89827_business%202026%20achiever.png",
-                        sp: "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69798529e30c2a6170e51e1e_solution%202026%20achiever.png"
-                    }
+                    'Essential': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92974e4d5d07afb207_logo2.webp",
+                    'Silver': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92035af94bc7ba16d5_logo4.webp",
+                    'Gold': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92f80fbcd35ee1b2d6_logo3.webp",
+                    'Bronze': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf9265e9b80a6769e0f1_logo1.webp",
                 };
             }
             connectedCallback() {
@@ -1478,10 +1472,21 @@ const script = () => {
                     },
                     data: { pledge_id: id },
                     success: async (data) => {
-                        if (data['status'] == 'Achiever') {
-                            $('.part-dl-hero').addClass('part-dl-hero-achiever');
+                        switch (data['status']) {
+                            case 'Essential':
+                                $('.part-dl-hero').addClass('part-dl-hero-essential');
+                                break;
+                            case 'Silver    ':
+                                $('.part-dl-hero').addClass('part-dl-hero-silver');
+                                break;
+                            case 'Gold':
+                                $('.part-dl-hero').addClass('part-dl-hero-gold');
+                                break;
+                            case 'Bronze':
+                                $('.part-dl-hero').addClass('part-dl-hero-bronze');
+                                break;
                         }
-                        console.log('khanh' + data['website_url'])
+
                         if (data['industry'] == '' || !data['website_url']) {
                             $('.part-dl-hero-social-item-space').hide();
                         }
@@ -1525,7 +1530,8 @@ const script = () => {
                                 $(item).find('.txt').text(this.cleanLink(data[key]));
                             }
                             else if (key == 'info-img') {
-                                const badgeUrl = this.getBadgeImage(data.status, data.type_of_company);
+                                const badgeUrl = this.badgeMap[data.status];
+                                console.log(data.status)
                                 console.log(badgeUrl)
                                 $(item).attr('src', badgeUrl)
                             }
