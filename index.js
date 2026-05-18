@@ -1271,28 +1271,29 @@ const script = () => {
             generatePagination(currentPage, totalPages, maxVisible = 5) {
                 const pages = [];
 
-                pages.push(1);
-
                 if (totalPages <= maxVisible) {
-                    for (let i = 2; i <= totalPages; i++) {
+                    for (let i = 1; i <= totalPages; i++) {
                         pages.push(i);
                     }
                 } else {
+                    pages.push(1);
                     if (currentPage <= 3) {
-                        for (let i = 2; i <= 3; i++) {
+                        // Gần đầu: 1, 2, 3, 4, ..., totalPages
+                        for (let i = 2; i <= 4; i++) {
                             pages.push(i);
                         }
                         pages.push('...');
-                        pages.push(totalPages - 1);
                         pages.push(totalPages);
                     }
                     else if (currentPage >= totalPages - 2) {
+                        // Gần cuối: 1, ..., totalPages-3, totalPages-2, totalPages-1, totalPages
                         pages.push('...');
-                        for (let i = totalPages - 2; i <= totalPages; i++) {
+                        for (let i = totalPages - 3; i <= totalPages; i++) {
                             pages.push(i);
                         }
                     }
                     else {
+                        // Giữa: 1, ..., currentPage-1, currentPage, currentPage+1, ..., totalPages
                         pages.push('...');
                         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
                             pages.push(i);
@@ -1318,25 +1319,29 @@ const script = () => {
                 visiblePages.forEach((pageNumber) => {
                     let page = this.paginationDOM.clone();
                     page.find('.txt').text(pageNumber);
-                    console.log(this.currentPage)
                     page.toggleClass('active', pageNumber === this.currentPage);
-                    page.on('click', (e) => {
-                        e.preventDefault();
-                        this.currentPage = pageNumber;
-                        this.query = { ...this.query, page: this.currentPage };
+                    if (pageNumber === '...') {
+                        page.addClass('ellipsis');
+                    } else {
+                        page.on('click', (e) => {
+                            e.preventDefault();
+                            if (pageNumber === this.currentPage) return;
+                            this.currentPage = pageNumber;
+                            this.query = { ...this.query, page: this.currentPage };
 
-                        this.fetchLeaderBoard().then(({ data }) => {
-                            this.updateData(data);
-                        }).catch((error) => {
-                            if (error.message !== 'Request already in progress') {
-                                console.error('Failed to fetch leaderboard:', error);
-                            }
+                            this.fetchLeaderBoard().then(({ data }) => {
+                                this.updateData(data);
+                            }).catch((error) => {
+                                if (error.message !== 'Request already in progress') {
+                                    console.error('Failed to fetch leaderboard:', error);
+                                }
+                            });
+                            this.updatePagination({
+                                currentPage: this.currentPage,
+                                totalPages: this.totalPages
+                            }, query);
                         });
-                        this.updatePagination({
-                            currentPage: this.currentPage,
-                            totalPages: this.totalPages
-                        }, query);
-                    });
+                    }
                     if (viewport.w > 767) {
                         $(this).find('.part-pled-table-pagin-list').append(page);
                     }
