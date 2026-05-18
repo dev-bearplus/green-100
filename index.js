@@ -1166,23 +1166,14 @@ const script = () => {
                 // $(this).find('.part-pled-tab').eq(0).trigger('click');
                 $(this).find('.part-pled-table-pagin-arrow').on('click', (e) => {
                     e.preventDefault();
-                    if ($(e.target).hasClass('prev')) {
+                    const isPrev = $(e.currentTarget).hasClass('prev');
+                    if (isPrev) {
+                        if (this.currentPage <= 1) return;
                         this.currentPage--;
-                        if (this.currentPage < 1) {
-                            this.currentPage = 1;
-                        }
-                    }
-                    else {
+                    } else {
+                        if (this.currentPage >= this.totalPages) return;
                         this.currentPage++;
-                        if (this.currentPage > this.totalPages) {
-                            this.currentPage = this.totalPages;
-                        }
                     }
-                    $('[data-pagi-current]').text(this.currentPage);
-                    $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
-                    $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
-                    $(this).find('.part-pled-table-pagin-page').removeClass('active');
-                    $(this).find('.part-pled-table-pagin-page').eq(this.currentPage - 1).addClass('active');
 
                     this.query = { ...this.query, page: this.currentPage };
                     this.fetchLeaderBoard().then(({ data }) => {
@@ -1191,6 +1182,10 @@ const script = () => {
                         if (error.message !== 'Request already in progress') {
                             console.error('Failed to fetch leaderboard:', error);
                         }
+                    });
+                    this.updatePagination({
+                        currentPage: this.currentPage,
+                        totalPages: this.totalPages
                     });
                 })
 
