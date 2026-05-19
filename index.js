@@ -1475,6 +1475,7 @@ const script = () => {
                         switch (data['status']) {
                             case 'Essential':
                                 $('.part-dl-hero').addClass('part-dl-hero-essential');
+                                $('.show-essential').css('display', 'flex')
                                 break;
                             case 'Silver':
                                 $('.part-dl-hero').addClass('part-dl-hero-silver');
