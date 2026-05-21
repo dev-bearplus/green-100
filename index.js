@@ -13,7 +13,9 @@ const script = () => {
             this.duration = duration;
         }
         setup(isReverse) {
-            console.log()
+            if (this.list.attr('data-active') === 'mobile' && viewport.w > 767) {
+                return;
+            }
             let itemClone = this.list.find('[data-marquee="item"]').clone();
             let itemWidth = this.list.find('[data-marquee="item"]').width();
             const cloneAmount = Math.ceil(viewport.w / itemWidth) + 1;
