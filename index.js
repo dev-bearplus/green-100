@@ -1699,7 +1699,39 @@ const script = () => {
                 this.setup();
                 this.interact();
             }
+            truncatePartnerText(maxWords = 50) {
+                this.querySelectorAll('.about-partner-item-sub').forEach((container) => {
+                    const walker = document.createTreeWalker(
+                        container,
+                        NodeFilter.SHOW_TEXT
+                    );
+                    let wordCount = 0;
+                    let currentNode = walker.nextNode();
+
+                    while (currentNode) {
+                        const words = [...currentNode.textContent.matchAll(/\S+/g)];
+
+                        if (words.length && wordCount + words.length >= maxWords) {
+                            const lastWord = words[maxWords - wordCount - 1];
+                            const cutoffOffset = lastWord.index + lastWord[0].length;
+                            const range = document.createRange();
+
+                            currentNode.textContent =
+                                currentNode.textContent.slice(0, cutoffOffset).trimEnd() + '...';
+                            range.setStart(currentNode, currentNode.textContent.length);
+                            range.setEnd(container, container.childNodes.length);
+                            range.deleteContents();
+                            break;
+                        }
+
+                        wordCount += words.length;
+                        currentNode = walker.nextNode();
+                    }
+                });
+            }
             setup() {
+                this.truncatePartnerText();
+
                 let swiperPartner = new Swiper(".about-partner-cms", {
                     slidesPerView: 'auto',
                     spaceBetween: parseRem(8),
