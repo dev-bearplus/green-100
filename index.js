@@ -1000,14 +1000,16 @@ const script = () => {
                     return Promise.reject(new Error('Request already in progress'));
                 }
                 // Filter out empty, null, undefined values from query
-                const filteredQuery = Object.entries(this.query).reduce((acc, [key, value]) => {
-                    if (value !== null && value !== undefined && value !== '') {
-                        acc[key] = value;
+                const params = new URLSearchParams();
+                for (const [key, value] of Object.entries(this.query)) {
+                    if (value === null || value === undefined || value === '') continue;
+                    if (Array.isArray(value)) {
+                        value.forEach(v => params.append(key, v));
+                    } else {
+                        params.append(key, value);
                     }
-                    return acc;
-                }, {});
-                // convert filtered query to urlSearchParam
-                let queryString = new URLSearchParams(filteredQuery).toString();
+                }
+                let queryString = params.toString();
                 this.isRequestInProgress = true;
 
                 // Clear any existing loading timeout
