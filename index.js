@@ -104,7 +104,7 @@ const script = () => {
             if (document.querySelector(targetId)) {
                 setTimeout(() => {
                     lenis.scrollTo(targetId, {
-                        immediate: true, // no smooth scroll on page load to avoid weird jumps if the user prefers, or maybe immediate: false if they want to see it scroll down. "vào trang cần scroll tới" suggests we might just jump there or do it smoothly. I'll do it smoothly.
+                        immediate: true, // no smooth scroll on page load to avoid weird jumps if the user prefers, or maybe immediate: false if they want to see it scroll down. "vÃ o trang cáº§n scroll tá»›i" suggests we might just jump there or do it smoothly. I'll do it smoothly.
                         duration: 1.2,
                         force: true
                     });
@@ -347,7 +347,7 @@ const script = () => {
                                     $(el).text(chains);
                                     break;
                                 case 'sme':
-                                    let smes = data.data.no_sme_pledged + data.data.no_sme_achieved;
+                                    let smes = data.data.no_sme_engaged;
                                     $(el).text(smes);
                                     break;
                                 case 'companies':
@@ -357,7 +357,7 @@ const script = () => {
                         })
                     },
                     error: (xhr, status, error) => {
-                        console.error("Lỗi khi gọi API:", error);
+                        console.error("Lá»—i khi gá»i API:", error);
                     }
                 });
             }
@@ -1113,7 +1113,7 @@ const script = () => {
                     }
 
                     if (this.filter[key].length !== 0) {
-                        this.query = { ...this.query, page: 1, [key]: this.filter[key].join(',') };
+                        this.query = { ...this.query, page: 1, [key]: [...this.filter[key]] };
                     }
                     else {
                         delete this.query[key];
@@ -1277,7 +1277,7 @@ const script = () => {
                 } else {
                     pages.push(1);
                     if (currentPage <= 3) {
-                        // Gần đầu: 1, 2, 3, 4, ..., totalPages
+                        // Gáº§n Ä‘áº§u: 1, 2, 3, 4, ..., totalPages
                         for (let i = 2; i <= 4; i++) {
                             pages.push(i);
                         }
@@ -1285,14 +1285,14 @@ const script = () => {
                         pages.push(totalPages);
                     }
                     else if (currentPage >= totalPages - 2) {
-                        // Gần cuối: 1, ..., totalPages-3, totalPages-2, totalPages-1, totalPages
+                        // Gáº§n cuá»‘i: 1, ..., totalPages-3, totalPages-2, totalPages-1, totalPages
                         pages.push('...');
                         for (let i = totalPages - 3; i <= totalPages; i++) {
                             pages.push(i);
                         }
                     }
                     else {
-                        // Giữa: 1, ..., currentPage-1, currentPage, currentPage+1, ..., totalPages
+                        // Giá»¯a: 1, ..., currentPage-1, currentPage, currentPage+1, ..., totalPages
                         pages.push('...');
                         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
                             pages.push(i);
@@ -1410,7 +1410,7 @@ const script = () => {
                         window.location.href = `/green-supplier?id=${id}`;
                     },
                     error: (xhr, status, error) => {
-                        console.error("Lỗi khi gọi API:", error);
+                        console.error("Lá»—i khi gá»i API:", error);
                         this.notFound();
                     }
                 });
@@ -1462,7 +1462,8 @@ const script = () => {
                     window.history.replaceState({}, "", newUrl);
                 }
                 else {
-                    window.location.href = '/green-suppliers'
+                    window.location.href = '/green-supplier-registry'
+					return;
                 }
                 this.getDetail(pledgeId);
             }
@@ -1546,7 +1547,7 @@ const script = () => {
                         })
                     },
                     error: (xhr, status, error) => {
-                        console.error("Lỗi khi gọi API:", error);
+                        console.error("Lá»—i khi gá»i API:", error);
                     }
                 });
             }
@@ -1733,7 +1734,6 @@ const script = () => {
             }
             setup() {
                 this.truncatePartnerText();
-
                 let swiperPartner = new Swiper(".about-partner-cms", {
                     slidesPerView: 'auto',
                     spaceBetween: parseRem(8),
