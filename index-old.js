@@ -1,0 +1,1928 @@
+const script = () => {
+    gsap.registerPlugin(ScrollTrigger)
+    ScrollTrigger.defaults({
+        invalidateOnRefresh: true,
+        // scroller: '.main-inner',
+    });
+    const parseRem = (input) => {
+        return input / 10 * parseFloat($('html').css('font-size'))
+    }
+    class Marquee {
+        constructor(list, duration = 40) {
+            this.list = list;
+            this.duration = duration;
+        }
+        setup(isReverse) {
+            if (this.list.attr('data-active') === 'mobile' && viewport.w > 767) {
+                return;
+            }
+            let itemClone = this.list.find('[data-marquee="item"]').clone();
+            let itemWidth = this.list.find('[data-marquee="item"]').width();
+            const cloneAmount = Math.ceil(viewport.w / itemWidth) + 1;
+            this.list.html("");
+            new Array(cloneAmount).fill().forEach(() => {
+                let html = itemClone.clone();
+                html.css(
+                    "animation-duration",
+                    `${Math.ceil(itemWidth / this.duration)}s`,
+                );
+                if (isReverse) {
+                    html.css("animation-direction", "reverse");
+                }
+                html.addClass("anim-marquee");
+                this.list.append(html);
+            });
+        }
+    }
+    const viewport = {
+        w: window.innerWidth,
+        h: window.innerHeight,
+    };
+    const device = { desktop: 991, tablet: 767, mobile: 479 }
+    function isStagging() {
+        let currentUrl = window.location.href;
+        return currentUrl.includes('webflow.io')
+    }
+    const domainApi = isStagging() ? 'https://uat.gprnt.ai' : 'https://app.gprnt.ai';
+    const cvUnit = (val, unit) => {
+        let result;
+        switch (true) {
+            case unit === 'vw':
+                result = window.innerWidth * (val / 100);
+                break;
+            case unit === 'vh':
+                result = window.innerHeight * (val / 100);
+                break;
+            case unit === 'rem':
+                result = val / 10 * parseFloat($('html').css('font-size'));
+                break;
+            default: break;
+        }
+        return result;
+    }
+    const debounce = (func, timeout = 300) => {
+        let timer
+
+        return (...args) => {
+            clearTimeout(timer)
+            timer = setTimeout(() => { func.apply(this, args) }, timeout)
+        }
+    }
+    const refreshOnBreakpoint = () => {
+        const breakpoints = Object.values(device).sort((a, b) => a - b);
+        const initialViewportWidth = window.innerWidth || document.documentElement.clientWidth;
+        const breakpoint = breakpoints.find(bp => initialViewportWidth < bp) || breakpoints[breakpoints.length - 1];
+        window.addEventListener('resize', debounce(function () {
+            const newViewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            if ((initialViewportWidth < breakpoint && newViewportWidth >= breakpoint) ||
+                (initialViewportWidth >= breakpoint && newViewportWidth < breakpoint)) {
+                location.reload();
+            }
+        }));
+    }
+    let header = document.querySelector('header-component')
+    const lenis = new Lenis();
+    function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    lenis.on('scroll', ScrollTrigger.update)
+    lenis.on('scroll', (inst) => {
+        header.toggleSticky(inst.scroll >= header.clientHeight)
+        header.onHideDependent();
+    })
+
+    const pageName = $('.main-inner').attr('data-barba-namespace');
+
+    // Check params or hash to scroll on page load
+    window.addEventListener('load', () => {
+        let params = new URLSearchParams(window.location.search);
+        let section = params.get('section') || window.location.hash.replace('#', '');
+        if (section) {
+            let targetId = '#' + section;
+            if (document.querySelector(targetId)) {
+                setTimeout(() => {
+                    lenis.scrollTo(targetId, {
+                        immediate: true, // no smooth scroll on page load to avoid weird jumps if the user prefers, or maybe immediate: false if they want to see it scroll down. "vào trang cần scroll tới" suggests we might just jump there or do it smoothly. I'll do it smoothly.
+                        duration: 1.2,
+                        force: true
+                    });
+                }, 300);
+            }
+        }
+    });
+
+    class Loading extends HTMLElement {
+        constructor() {
+            super();
+            this.el = this;
+        }
+        connectedCallback() {
+            this.setup();
+
+        }
+        setup() {
+            let tl = new gsap.timeline({
+                onComplete: () => {
+                    $('.loading').addClass('loaded')
+                }
+            });
+            tl
+                .to('.loading-logo-path', { opacity: 1, duration: .4 })
+                .fromTo('.loading-logo-path', { strokeDasharray: "0 15px" }, { strokeDasharray: "1 15px", duration: .8, ease: 'power1.in' }, '<=.2')
+                .to('.loading', { yPercent: -100, duration: .6, ease: 'power4.in' })
+                .to('.loading-logo', { opacity: 0, duration: .6, }, '<=0.6')
+        }
+
+    }
+    customElements.define('loading-wrap', Loading);
+    class Header extends HTMLElement {
+        constructor() {
+            super();
+            this.el = this;
+            this.navEl = this.el.querySelector('.header-act');
+            this.toggle = this.el.querySelector('.header-toggle-btn');
+            this.allLinks = this.el.querySelectorAll('.header-link[data-link="section"]');
+            this.allFooterLinks = document.querySelectorAll('.footer-link[href^="/#"]');
+            this.listDependent = [];
+
+        }
+        connectedCallback() {
+            if (window.innerWidth > 767) {
+                this.setupDesktop();
+                this.update();
+            } else {
+                this.el.classList.remove('on-open')
+                this.setupMobile();
+            }
+
+        }
+        setupMobile() {
+            this.allLinks.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    this.toggleMenu();
+                    let url = new URL(item.href, window.location.origin);
+                    if (url.pathname.replace(/\/$/, '') === window.location.pathname.replace(/\/$/, '')) {
+                        let target = url.hash || (url.searchParams.has('section') ? '#' + url.searchParams.get('section') : '');
+                        if (target) {
+                            e.preventDefault();
+                            setTimeout(() => {
+                                lenis.scrollTo(target, {
+                                    duration: 1.2,
+                                    force: true
+                                });
+                            }, 300); // Give menu time to close
+                        }
+                    }
+                })
+            })
+            this.allFooterLinks.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    let url = new URL(item.href, window.location.origin);
+                    if (url.pathname.replace(/\/$/, '') === window.location.pathname.replace(/\/$/, '')) {
+                        let target = url.hash || (url.searchParams.has('section') ? '#' + url.searchParams.get('section') : '');
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, {
+                                duration: 1.2,
+                                force: true
+                            });
+                        }
+                    }
+                })
+            })
+            this.toggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleMenu();
+            })
+        }
+        setupDesktop() {
+            this.allLinks.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    let url = new URL(item.href, window.location.origin);
+                    if (url.pathname.replace(/\/$/, '') === window.location.pathname.replace(/\/$/, '')) {
+                        let target = url.hash || (url.searchParams.has('section') ? '#' + url.searchParams.get('section') : '');
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, {
+                                duration: 1.2,
+                                force: true
+                            });
+                        }
+                    }
+                })
+            })
+            this.allFooterLinks.forEach((item, idx) => {
+                item.addEventListener('click', (e) => {
+                    let url = new URL(item.href, window.location.origin);
+                    if (url.pathname.replace(/\/$/, '') === window.location.pathname.replace(/\/$/, '')) {
+                        let target = url.hash || (url.searchParams.has('section') ? '#' + url.searchParams.get('section') : '');
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, {
+                                duration: 1.2,
+                                force: true
+                            });
+                        }
+                    }
+                })
+            })
+        }
+        toggleSticky(state) {
+            if (state) {
+                header.classList.add('on-scroll')
+            } else {
+                header.classList.remove('on-scroll')
+            }
+        }
+        registerDependent(dependentEl) {
+            this.listDependent.push(dependentEl);
+        }
+        unregisterDependent(dependentEl) {
+            if (this.listDependent.includes(dependentEl)) {
+                this.listDependent = this.listDependent.filter((item) => item !== dependentEl);
+            }
+        }
+        onHideDependent() {
+            let heightHeader = $(this.el).height() - cvUnit(1, 'rem');
+            if (!$(this.el).hasClass('on-hide')) {
+                this.listDependent.forEach((item) => {
+                    $(item).css('top', heightHeader);
+                });
+            } else {
+                this.listDependent.forEach((item) => {
+                    $(item).css('top', 0);
+                });
+            }
+        }
+        update() {
+        }
+        toggleMenu() {
+            this.el.classList.toggle('on-open');
+        }
+    }
+    customElements.define('header-component', Header);
+    class Popup extends HTMLElement {
+        constructor() {
+            super();
+            this.el = this;
+            this.popup = this.el.querySelector('.popup-wrap')
+            this.toggles = document.querySelectorAll('[data-popup-contact]');
+        }
+        connectedCallback() {
+            this.setup()
+
+        }
+        setup() {
+            if (!this.toggles) return;
+            this.toggles.forEach((el) => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    let type = el.getAttribute('data-popup-contact');
+                    this.togglePopup(type);
+                })
+            })
+        }
+        togglePopup(state) {
+            if (state == 'open') {
+                this.popup.classList.add('on-open')
+            } else {
+                this.popup.classList.remove('on-open')
+            }
+        }
+    }
+    customElements.define('popup-component', Popup);
+    const HomePage = {
+
+        'home-hero-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.el = $('.home-hero');
+            }
+            connectedCallback() {
+                this.setup();
+            }
+            setup() {
+                let marquee = new Marquee($(this.el).find('[data-marquee="list"]'), 40);
+                marquee.setup(false);
+            }
+        },
+        'home-about-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                // get data from api
+                $.ajax({
+                    url: `${domainApi}/api/v1/cms/items/stats`,
+                    method: "GET",
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        $('[data-fetch]').each((idx, el) => {
+                            let key = $(el).attr('data-fetch');
+                            switch (key) {
+                                case 'chains':
+                                    let chains = data.data.no_ent_pledged + data.data.no_ent_achieved;
+                                    $(el).text(chains);
+                                    break;
+                                case 'sme':
+                                    let smes = data.data.no_sme_pledged + data.data.no_sme_achieved;
+                                    $(el).text(smes);
+                                    break;
+                                case 'companies':
+                                    $(el).text(data.data.no_sme_achieved);
+                                    break;
+                            }
+                        })
+                    },
+                    error: (xhr, status, error) => {
+                        console.error("Lỗi khi gọi API:", error);
+                    }
+                });
+            }
+        },
+        'home-faq-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.animationScrub();
+                this.animationReveal();
+                this.interact();
+            }
+            animationReveal() {
+            }
+            animationScrub() {
+            }
+            interact() {
+                const DOM = {
+                    accordion: $('.accordion'),
+                    accordionTitle: $('.accordion-title'),
+                    accordionContent: $('.accordion-content')
+                }
+                const activeAccordion = (index) => {
+                    DOM.accordionContent.eq(index).slideToggle("slow");
+                    DOM.accordion.eq(index).toggleClass("active");
+
+                    DOM.accordionContent.not(DOM.accordionContent.eq(index)).slideUp("slow");
+                    DOM.accordion.not(DOM.accordion.eq(index)).removeClass("active");
+                }
+                DOM.accordionTitle.on("click", function () {
+                    let index = $(this).parent().index();
+                    activeAccordion(index);
+                })
+            }
+            destroy() {
+                this.tlTrigger.kill();
+                // Clean up loading timeout
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
+        'home-partner-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                this.interact();
+            }
+            setup() {
+                if (viewport.w < 768) {
+                    if ($('.home-partner-main-item').length > 10) {
+                        $('.home-partner-viewmore').show();
+                        $('.home-partner-main-item').slice(10).hide();
+                        $('.home-partner-viewmore').on('click', () => {
+                            $('.home-partner-main-item').slice(10).fadeIn();
+                            $('.home-partner-viewmore').hide();
+                        })
+                    }
+                }
+            }
+            interact() {
+
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
+        'home-testi-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+            setup() {
+                let swiperEvent = new Swiper(".home-testi-cms", {
+                    slidesPerView: 1,
+                    spaceBetween: parseRem(0),
+                    effect: "fade",
+                    navigation: {
+                        prevEl: ".home-testi-content-control-item.prev",
+                        nextEl: ".home-testi-content-control-item.next",
+                    },
+                    pagination: {
+                        el: '.home-testi-content-pagi',
+                        bulletClass: 'home-testi-content-pagi-item',
+                        bulletActiveClass: 'active',
+                        clickable: true,
+                    },
+                    breakpoints: {
+                        767: {
+                            spaceBetween: parseRem(16),
+                        }
+                    }
+                });
+            }
+            interact() {
+
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
+        'home-event-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+            setup() {
+                $('.home-event-item').each(function () {
+                    let item = $(this);
+                    let hasExternalLink = item.find('.external-link').length > 0;
+                    if (hasExternalLink) {
+                        item.find('.home-event-item-inner').attr('target', '_blank');
+                        let linkExternal = item.find('.external-link').attr('data-link');
+                        console.log(linkExternal)
+                        item.find('.home-event-item-inner').attr('href', linkExternal);
+                    }
+                })
+                if (viewport.w < 992) {
+                    $('.home-event-cms').addClass('swiper');
+                    $('.home-event-list').addClass('swiper-wrapper');
+                    $('.home-event-item').addClass('swiper-slide');
+                    let swiperEvent = new Swiper(".home-event-cms", {
+                        slidesPerView: 'auto',
+                        spaceBetween: parseRem(8),
+                        navigation: {
+                            prevEl: ".home-event-control-item-prev",
+                            nextEl: ".home-event-control-item-next",
+                        },
+                        pagination: {
+                            el: '.home-event-pagi',
+                            bulletClass: 'home-event-pagi-item',
+                            bulletActiveClass: 'active',
+                            clickable: true,
+                        },
+                        breakpoints: {
+                            767: {
+                                spaceBetween: parseRem(16),
+                            }
+                        }
+                    });
+                }
+            }
+            interact() {
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
+        'home-hiw-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.activeIndex = -1;
+                this.allItems = $('.home-hiwn-content-inner');
+                this.interact();
+            }
+            interact() {
+                viewport.w < 767 && header.registerDependent('.home-hiwn-tab-wrap');
+                $('.home-hiwn-tab-item').on('click', (e) => {
+                    let item = $(e.currentTarget).closest('.home-hiwn-tab-item');
+                    if (item.hasClass('active')) return;
+                    let index = item.index();
+                    item.addClass('active').siblings().removeClass('active');
+                    this.activeIndex = index;
+                    this.allItems.removeClass('active');
+                    this.allItems.eq(index).addClass('active');
+                })
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        }
+        //     'home-hiw-wrap': class extends HTMLElement {
+        //         constructor() {
+        //             super();
+        //             this.tlTrigger = null;
+        //         }
+        //         connectedCallback() {
+        //             this.tlTrigger = gsap.timeline({
+        //                 scrollTrigger: {
+        //                     trigger: this,
+        //                     start: 'top bottom+=50%',
+        //                     end: 'bottom top-=50%',
+        //                     once: true,
+        //                     onEnter: () => {
+        //                         this.onTrigger();
+        //                     }
+        //                 }
+        //             });
+        //         }
+        //         onTrigger() {
+        //             this.activeIndex = -1;
+        //             this.allHeadItems = this.querySelectorAll('.home-hiw-head-item')
+        //             this.allItems = this.querySelectorAll('.home-hiw-body-item');
+        //             if (viewport.w > 767) {
+        //                 this.interact();
+        //             } else {
+        //                 this.interactMb()
+        //             }
+        //         }
+        //         interact() {
+        //             let offsetRatio = viewport.w > 991 ? .75 : .85;
+        //             let stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
+        //             let remainHeight = (window.innerHeight - stickHeight);
+        //             gsap.set(this.querySelector('.home-hiw-sticky'), { 'top': remainHeight * offsetRatio });
+        //             let tl = gsap.timeline({
+        //                 scrollTrigger: {
+        //                     trigger: this.querySelector('.home-hiw-main'),
+        //                     start: `top-=${stickHeight} top+=${remainHeight * offsetRatio}`,
+        //                     end: `bottom bottom-=${remainHeight * (1 - offsetRatio)}`,
+        //                     scrub: true,
+        //                     onUpdate: ((tlPrg) => {
+        //                         let prog = tlPrg.progress * this.allHeadItems.length;
+        //                         let index = Math.floor(prog);
+        //                         if (index < this.allHeadItems.length) {
+        //                             this.activeHead(index);
+        //                         }
+        //                     }).bind(this),
+        //                     invalidateOnRefresh: true
+        //                 },
+        //                 defaults: {
+        //                     ease: 'none'
+        //                 },
+        //             })
+        //             let fadeDur = .75;
+
+        //             this.allItems.forEach((item, idx) => {
+        //                 let dis = item.querySelectorAll('.home-hiw-item-card')[0].clientHeight + parseRem(8);
+        //                 let headDis = item.querySelectorAll('.home-hiw-item-card')[0].querySelector('.home-hiw-item-card-top').clientHeight;
+
+        //                 tl
+        //                     .to(item, { 'transform': 'none', duration: fadeDur, ease: 'power1.out' }, idx * (fadeDur + 1))
+        //                     .to(item.querySelectorAll('.home-hiw-item-card')[0], { y: headDis * -1, scale: .95, duration: 1 }, '>=0')
+        //                     .to(item.querySelectorAll('.home-hiw-item-card')[1], { y: dis * -1, duration: 1, 'box-shadow': '0 -33.169px 33.169px 0 rgba(0, 32, 16, 0.06), 0 -8.78px 18.536px 0 rgba(26, 54, 40, 0.06)' }, '<=0')
+        //                     .to(item, { 'transform': 'none', duration: fadeDur, ease: 'power1.out' }, '>=0')
+        //             })
+        //             this.activeHead(0)
+        //             this.allHeadItems.forEach((item, idx) => {
+        //                 item.addEventListener('click', (e) => {
+        //                     e.preventDefault();
+        //                     let targetProgress = idx / 3;
+        //                     let scrollTrigger = tl.scrollTrigger;
+        //                     let startPos = scrollTrigger.start;
+        //                     let endPos = scrollTrigger.end;
+        //                     let targetScrollPos = (startPos + (endPos - startPos) * targetProgress) + parseRem(10);
+        //                     lenis.scrollTo(targetScrollPos, {
+        //                         immediate: true,
+        //                         force: true
+        //                     });
+        //                 })
+        //             })
+        //             let headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
+        //             gsap.set('.home-hiw-text-wrap', { 'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight })
+        //             gsap.set('.home-hiw-sticky', { marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1 })
+        //             function updateOnResize() {
+        //                 offsetRatio = viewport.w > 991 ? .75 : .85;
+        //                 stickHeight = this.querySelector('.home-hiw-sticky').clientHeight;
+        //                 remainHeight = (window.innerHeight - stickHeight);
+        //                 gsap.set(this.querySelector('.home-hiw-sticky'), { 'top': remainHeight * offsetRatio });
+        //                 ScrollTrigger.refresh()
+        //                 headerTop = (remainHeight * offsetRatio) - document.querySelector('.home-hiw-text-wrap').offsetHeight
+        //                 gsap.set('.home-hiw-text-wrap', { 'position': 'sticky', top: headerTop, marginBottom: document.querySelector('.home-hiw-sticky').clientHeight })
+        //                 gsap.set('.home-hiw-sticky', { marginTop: document.querySelector('.home-hiw-sticky').clientHeight * -1 })
+        //             }
+        //             $(window).on('resize', updateOnResize.bind(this))
+        //         }
+        //         interactMb() {
+        //             this.activeHead(0)
+        //             this.allItems.forEach((item, idx) => {
+        //                 // let dis = item.querySelectorAll('.home-hiw-item-card')[1].clientHeight - parseRem(83);
+        //                 // let itemTl = gsap.timeline({
+        //                 //     scrollTrigger: {
+        //                 //         trigger: item.querySelectorAll('.home-hiw-item-card')[0],
+        //                 //         start: 'center center',
+        //                 //         endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
+        //                 //         end: 'center center',
+        //                 //         scrub: true,
+        //                 //     },
+        //                 //     defaults: {
+        //                 //         ease: 'none'
+        //                 //     }
+        //                 // })
+        //                 // requestAnimationFrame(() => {
+        //                 //     itemTl
+        //                 //     .to(item.querySelector('.home-hiw-body-item-head'), {y: dis * 1, duration: 1})
+        //                 //     .to(item.querySelectorAll('.home-hiw-item-card')[0], {y: dis, duration: 1}, 0)
+        //                 //     .to(item.querySelectorAll('.home-hiw-item-card')[1], {'box-shadow': '0 -4px 12px 0 rgba(0, 32, 16, 0.08)', duration: 1}, 0)
+        //                 // })
+        //                 let itemHeadTl = gsap.timeline({
+        //                     scrollTrigger: {
+        //                         trigger: item.querySelector('.home-hiw-body-item-head'),
+        //                         start: `top top+=25%`,
+        //                         endTrigger: item.querySelectorAll('.home-hiw-item-card')[1],
+        //                         end: 'bottom center',
+        //                         scrub: true,
+        //                         onUpdate: () => {
+        //                             this.activeHead(idx)
+        //                         }
+        //                     }
+        //                 })
+        //                 this.allHeadItems[idx].addEventListener('click', (e) => {
+        //                     e.preventDefault();
+        //                     let itemOffsetTop = this.allItems[idx].getBoundingClientRect().top + window.scrollY;
+        //                     let startPos = itemOffsetTop - parseRem(107);
+        //                     lenis.scrollTo(startPos, {
+        //                         duration: 1,
+        //                         force: true
+        //                     });
+        //                 })
+        //             })
+        //         }
+        //         activeHead(index) {
+        //             if (this.activeIndex == index) return;
+        //             this.activeIndex = index;
+        //             this.allHeadItems.forEach((item, idx) => {
+        //                 item.classList.toggle('active', idx == index);
+        //             })
+        //             this.allItems.forEach((item, idx) => {
+        //                 item.classList.toggle('active', idx == index);
+        //             })
+        //         }
+        //         destroy() {
+        //             this.tlTrigger.kill();
+        //         }
+        //     },
+    }
+    const TermPage = {
+        'term-main-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.animationScrub();
+                this.animationReveal();
+                if (viewport.w > 767) {
+                    this.setup();
+                    this.interact();
+                }
+            }
+            animationReveal() {
+            }
+            animationScrub() {
+            }
+            setup() {
+                let tocClone = $('.term-main-toc-item').eq(0).clone().removeClass('active');
+                let headings = $('.term-main-content-richtext h2');
+                $('.term-main-toc-list').html('');
+                headings.each((idx, heading) => {
+                    let text = $(heading).text();
+                    let id = text.toLowerCase().trim().replace(/^\d+\.\s*/, '').replace(/\s*\([^)]*\)/g, '').replace(/[\s\W-]+/g, '-').replace(/^-+|-+$/g, '');
+                    let link = tocClone.clone();
+                    $(heading).attr('id', id);
+                    link.attr('href', `#${id}`);
+                    link.find('.txt').text(text);
+                    $('.term-main-toc-list').append(link);
+                })
+                $('.term-main-toc-stick').css('top', $('.header').outerHeight());
+            }
+            interact() {
+                let headings = $('.term-main-content-richtext h2');
+
+                lenis.on('scroll', function (e) {
+                    let currScroll = e.scroll;
+                    for (let i = 0; i < headings.length; i++) {
+                        let top = headings.eq(i).get(0).getBoundingClientRect().top;
+                        if (top > 0 && top < (viewport.h / 5)) {
+                            let id = headings.eq(i).attr('id');
+                            $(`.term-main-toc-item[href="#${id}"]`).addClass('w--current');
+                            $(`.term-main-toc-item`).not(`[href="#${id}"]`).removeClass('w--current');
+                        }
+                    }
+                });
+
+                $('.term-main-toc-item').on('click', function (e) {
+                    e.preventDefault();
+                    let target = $(this).attr('href');
+
+                    lenis.scrollTo(target, {
+                        offset: -100,
+                        duration: .2,
+                        force: true
+                    })
+                    $(this).addClass('w--current');
+                    $(`.term-main-toc-item`).not(this).removeClass('w--current');
+
+                    history.replaceState({}, '', `${window.location.pathname + target}`);
+                    return false;
+                })
+
+                const currToc = window.location.hash;
+                if ($(currToc).length) {
+                    setTimeout(() => {
+                        $(`.term-main-toc-item[href='${currToc}']`).trigger('click');
+                    }, 10)
+                }
+                else {
+                    history.replaceState({}, '', window.location.pathname);
+                }
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        }
+    }
+    const TpEventPage = {
+        'tp-event-blog-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+
+            setup() {
+                if (viewport.w < 992) {
+                    $('.tp-event-blog-cms').addClass('swiper');
+                    $('.tp-event-blog-list').addClass('swiper-wrapper');
+                    $('.tp-event-blog-item').addClass('swiper-slide');
+                    let swiperBlog = new Swiper(".tp-event-blog-cms", {
+                        slidesPerView: 'auto',
+                        spaceBetween: parseRem(8),
+                        pagination: {
+                            el: '.tp-event-blog-pagi',
+                            bulletClass: 'tp-event-blog-pagi-item',
+                            bulletActiveClass: 'active',
+                            clickable: true,
+                        },
+                        breakpoints: {
+                            767: {
+                                spaceBetween: parseRem(16),
+                            }
+                        }
+                    });
+                }
+            }
+            interact() {
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        }
+    }
+    const ParticipantPage = {
+        'part-pled-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+                this.rowDOM = $(this).find('.part-pled-table-list .part-pled-table-row').eq(0).clone();
+                this.paginationDOM = $(this).find('.part-pled-table-pagin-list .part-pled-table-pagin-page').eq(0).clone();
+                this.currentPage = 1;
+                this.totalPages = 10;
+                this.isRequestInProgress = false;
+                this.loadingTimeout = null;
+                this.loadingDelay = 300; // Show loading after 300ms
+                this.filter = {
+                    pledge_status: [],
+                    industry: [],
+                    category: []
+                }
+                this.query = { type: 'sme', limit: 10, page: 1 }
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                this.interact();
+            }
+            setup() {
+                console.log(this.query)
+                this.fetchLeaderBoard().then(({ data, pagination }) => {
+                    this.updateData(data);
+                    this.updatePagination(pagination);
+                }).catch((error) => {
+                    if (error.message !== 'Request already in progress') {
+                        console.error('Failed to fetch leaderboard:', error);
+                    }
+                });
+                if (viewport.w < 768) {
+                    $('.part-pled-filters-form-inner').attr('data-lenis-prevent', true)
+                }
+                else {
+                    $('.part-pled-dropdown-list').attr('data-lenis-prevent', true)
+                }
+            }
+            fetchData(type) {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let url = `${domainApi}/api/v1/cms/${type}`;
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                ...(isStagging() ? { 'cookie': 'uat.gprnt.ai' } : {})
+                            },
+                            cache: "force-cache"
+                        }).then((res) => res);
+                        if (response.ok) {
+                            let data = await response.json();
+                            resolve(data);
+                        }
+                        else {
+                            reject(response);
+                        }
+                    }
+                    catch (error) {
+                        reject(error);
+                    }
+                })
+            }
+            async fetchLeaderBoard() {
+                // Prevent multiple simultaneous requests
+                if (this.isRequestInProgress) {
+                    return Promise.reject(new Error('Request already in progress'));
+                }
+                // Filter out empty, null, undefined values from query
+                const filteredQuery = Object.entries(this.query).reduce((acc, [key, value]) => {
+                    if (value !== null && value !== undefined && value !== '') {
+                        acc[key] = value;
+                    }
+                    return acc;
+                }, {});
+                // convert filtered query to urlSearchParam
+                let queryString = new URLSearchParams(filteredQuery).toString();
+                this.isRequestInProgress = true;
+
+                // Clear any existing loading timeout
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+
+                // Set timeout to show loading only if request takes longer than delay
+                this.loadingTimeout = setTimeout(() => {
+                    if (this.isRequestInProgress) {
+                        this.isLoading(true);
+                    }
+                }, this.loadingDelay);
+
+                try {
+                    const result = await this.fetchData(`leaderboard?${queryString}`);
+                    // Clear timeout and hide loading after successful fetch
+                    if (this.loadingTimeout) {
+                        clearTimeout(this.loadingTimeout);
+                        this.loadingTimeout = null;
+                    }
+                    this.isLoading(false);
+                    this.isRequestInProgress = false;
+                    $(this).find('.part-pled-table-empty').toggleClass('show', result.data.length === 0);
+                    return result;
+                } catch (error) {
+                    // Clear timeout and hide loading on error
+                    if (this.loadingTimeout) {
+                        clearTimeout(this.loadingTimeout);
+                        this.loadingTimeout = null;
+                    }
+                    this.isLoading(false);
+                    this.isRequestInProgress = false;
+                    throw error;
+                }
+            }
+            async fetchPledge(id) {
+                return await this.fetchData(`pledge?pledge_id=${id}`);
+            }
+            interact() {
+                if (viewport.w < 768) {
+                    $('.part-pled-dropdown-filter').on('click', function (e) {
+                        e.preventDefault();
+                        $('.part-pled-filters-form-inner').toggleClass('active');
+
+                        $(this).toggleClass('active');
+                    })
+                }
+                const dropdownAct = {
+                    open: (target) => {
+                        let dropdown = $(target).parent();
+                        dropdown.addClass('active');
+                        dropdown.siblings().removeClass('active');
+                    },
+                    close: (target) => {
+                        if (target) {
+                            $(target).parent().removeClass('active');
+                        }
+                        else {
+                            $('.part-pled-dropdown').removeClass('active');
+                        }
+                    },
+                    toggle: (target) => {
+                        let dropdown = $(target).parent();
+                        if (dropdown.hasClass('active')) {
+                            dropdown.removeClass('active');
+                        }
+                        else {
+                            $('[data-filter]').removeClass('active');
+                            dropdown.addClass('active');
+                        }
+                    }
+                }
+                $(this).find('.part-pled-dropdown-toggle').on('click', function (e) {
+                    e.preventDefault();
+                    dropdownAct.toggle(this);
+                })
+                $(this).find('.part-pled-dropdown-link').on('click', (e) => {
+                    e.preventDefault();
+                    let key = $(e.target).closest('[data-filter]').attr('data-filter');
+
+                    if ($(e.target).hasClass('check-all')) {
+                        if ($(e.target).find('.checkbox-field').hasClass('active')) {
+                            $(e.target).parent().find('.checkbox-field').removeClass('active');
+                        }
+                        else {
+                            $(e.target).parent().find('.checkbox-field').addClass('active');
+                        }
+                    }
+                    else {
+                        $(e.target).find('.checkbox-field').toggleClass('active');
+                        let filter = $(e.target).find('.checkbox-txt .txt').text();
+                        if ($(e.target).find('.checkbox-field').hasClass('active')) {
+                            this.filter[key].push(filter);
+                        }
+                        else {
+                            this.filter[key] = this.filter[key].filter(item => item !== filter);
+                            $(this).find('.part-pled-dropdown-link.check-all .checkbox-field').removeClass('active');
+                        }
+                    }
+
+                    if (this.filter[key].length !== 0) {
+                        this.query = { ...this.query, page: 1, [key]: this.filter[key].join(',') };
+                    }
+                    else {
+                        delete this.query[key];
+                    }
+                    this.fetchLeaderBoard().then(({ data, pagination }) => {
+                        this.updateData(data);
+                        this.updatePagination(pagination);
+                    }).catch((error) => {
+                        if (error.message !== 'Request already in progress') {
+                            console.error('Failed to fetch leaderboard:', error);
+                        }
+                    });
+                })
+                $(window).on('click', (e) => {
+                    if (!$(this).find('.part-pled-dropdown-link:hover').length)
+                        if (!$(this).find('.part-pled-dropdown-toggle:hover').length) {
+                            dropdownAct.close();
+                        }
+                })
+                // $(this).find('.part-pled-tab').on('click', (e) => {
+                //     e.preventDefault();
+                //     $(e.target).addClass('active').siblings().removeClass('active');
+                //     let typeTab = $(e.target).attr('data-type');
+                //     if (typeTab == 'sp') {
+                //         delete this.query['industry'];
+                //         let categories = this.updateActiveDropdown('category');
+                //         console.log(categories)
+                //         this.query = { ...this.query, 'category': categories.join(',') };
+                //         $('[data-table-head]').removeClass('show');
+                //         $('[data-table-head="category"]').addClass('show');
+                //         $('.part-pled-dropdown-item').removeClass('show');
+                //         $('.part-pled-dropdown-item[data-filter="category"]').addClass('show');
+                //     }
+                //     else {
+                //         delete this.query['category'];
+                //         let industries = this.updateActiveDropdown('industry');
+                //         this.query = { ...this.query, 'industry': industries.join(',') };
+                //         $('[data-table-head]').removeClass('show');
+                //         $('[data-table-head="industry"]').addClass('show');
+                //         $('.part-pled-dropdown-item').removeClass('show');
+                //         $('.part-pled-dropdown-item[data-filter="industry"]').addClass('show');
+                //     }
+                //     this.query = { ...this.query, type: typeTab, page: 1 };
+                //     console.log(this.query)
+                //     this.fetchLeaderBoard().then(({ data, pagination }) => {
+                //         this.updateData(data);
+                //         this.updatePagination(pagination);
+                //     }).catch((error) => {
+                //         if (error.message !== 'Request already in progress') {
+                //             console.error('Failed to fetch leaderboard:', error);
+                //         }
+                //     });
+                // })
+                // $(this).find('.part-pled-tab').eq(0).trigger('click');
+                $(this).find('.part-pled-table-pagin-arrow').on('click', (e) => {
+                    e.preventDefault();
+                    const isPrev = $(e.currentTarget).hasClass('prev');
+                    if (isPrev) {
+                        if (this.currentPage <= 1) return;
+                        this.currentPage--;
+                    } else {
+                        if (this.currentPage >= this.totalPages) return;
+                        this.currentPage++;
+                    }
+
+                    this.query = { ...this.query, page: this.currentPage };
+                    this.fetchLeaderBoard().then(({ data }) => {
+                        this.updateData(data);
+                    }).catch((error) => {
+                        if (error.message !== 'Request already in progress') {
+                            console.error('Failed to fetch leaderboard:', error);
+                        }
+                    });
+                    this.updatePagination({
+                        currentPage: this.currentPage,
+                        totalPages: this.totalPages
+                    });
+                })
+
+                $(this).find('.part-pled-search-input').on('input', debounce((e) => {
+                    const searchValue = e.target.value.trim();
+                    this.query = { ...this.query, search: searchValue, page: 1 };
+
+                    this.fetchLeaderBoard().then(({ data, pagination }) => {
+                        this.updateData(data);
+                        this.updatePagination(pagination);
+                    }).catch((error) => {
+                        if (error.message !== 'Request already in progress') {
+                            console.error('Failed to fetch leaderboard:', error);
+                        }
+                    });
+                }, 500))
+            }
+            updateActiveDropdown(filterType) {
+                let filterArr = [];
+                $(`[data-filter = "${filterType}"] .checkbox-field.active .txt`).each((idx, item) => {
+                    filterArr.push($(item).text());
+                })
+                return filterArr;
+            }
+            updateData(data) {
+                $(this).find('.part-pled-table-list').empty();
+                data.forEach((item) => {
+                    let row = this.rowDOM.clone();
+                    Object.keys(item).forEach((key) => {
+                        if ($(row).find(`[data-value="${key}"]`).length) {
+                            if (key === 'pledge_id') {
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/green-supplier/${item[key]}`);
+                            }
+                            else if (key === 'website_url') {
+                                if (item[key]) {
+                                    $(row).find(`[data-value="${key}"] .txt`).text(item[key].replace(/^https?:\/\/(www\.)?([^\/]+)/, '$2').replace(/\/$/, ''));
+                                    let hrefUrl = item[key];
+                                    if (!/^https?:\/\//i.test(hrefUrl)) {
+                                        hrefUrl = 'https://' + hrefUrl;
+                                    }
+                                    $(row).find(`[data-value="${key}"] a`).attr('href', hrefUrl);
+                                }
+                                else {
+                                    $(row).find(`[data-value="${key}"] .txt`).text('-');
+                                    $(row).find(`[data-value="${key}"] a`).addClass('item-null')
+                                }
+                            }
+                            else if (key === 'company_name') {
+                                $(row).find(`[data-value="${key}"] a`).attr('href', `/green-supplier/${item['pledge_id']}`);
+                                $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                            }
+                            else if (key === 'pledge_date') {
+                                $(row).find(`[data-value="${key}"] .txt`).text(item[key] ? new Date(item[key]).toLocaleDateString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                }) : '-');
+                            }
+                            else if (key == 'industry') {
+                                if ($('.part-pled-tab.active').attr('data-type') == 'sp') {
+                                    $(row).find(`[data-value="${key}"] .txt`).text(item['primary_service_type'] ? item['primary_service_type'] : '-');
+                                }
+                                else {
+                                    $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                                }
+                            }
+                            else {
+                                $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                                if ($(row).find('[data-status]').length) {
+                                    $(row).find('[data-status]').attr('data-status', item[key]);
+                                }
+                            }
+                            $(this).find('.part-pled-table-list').append(row);
+                        }
+                    })
+                })
+            }
+            generatePagination(currentPage, totalPages, maxVisible = 5) {
+                const pages = [];
+
+                if (totalPages <= maxVisible) {
+                    for (let i = 1; i <= totalPages; i++) {
+                        pages.push(i);
+                    }
+                } else {
+                    pages.push(1);
+                    if (currentPage <= 3) {
+                        // Gần đầu: 1, 2, 3, 4, ..., totalPages
+                        for (let i = 2; i <= 4; i++) {
+                            pages.push(i);
+                        }
+                        pages.push('...');
+                        pages.push(totalPages);
+                    }
+                    else if (currentPage >= totalPages - 2) {
+                        // Gần cuối: 1, ..., totalPages-3, totalPages-2, totalPages-1, totalPages
+                        pages.push('...');
+                        for (let i = totalPages - 3; i <= totalPages; i++) {
+                            pages.push(i);
+                        }
+                    }
+                    else {
+                        // Giữa: 1, ..., currentPage-1, currentPage, currentPage+1, ..., totalPages
+                        pages.push('...');
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                            pages.push(i);
+                        }
+                        pages.push('...');
+                        pages.push(totalPages);
+                    }
+                }
+
+                return pages;
+            }
+            updatePagination(pagination, query) {
+                this.currentPage = pagination.currentPage;
+                this.totalPages = pagination.totalPages;
+                $('[data-pagi-total]').text(this.totalPages)
+                if (viewport.w > 767) {
+                    $(this).find('.part-pled-table-pagin-list').empty();
+                }
+                $(this).find('.part-pled-table-pagin-arrow.prev').toggleClass('disable', this.currentPage === 1);
+                $(this).find('.part-pled-table-pagin-arrow.next').toggleClass('disable', this.currentPage === this.totalPages);
+                const visiblePages = this.generatePagination(this.currentPage, this.totalPages);
+
+                visiblePages.forEach((pageNumber) => {
+                    let page = this.paginationDOM.clone();
+                    page.find('.txt').text(pageNumber);
+                    page.toggleClass('active', pageNumber === this.currentPage);
+                    if (pageNumber === '...') {
+                        page.addClass('ellipsis');
+                    } else {
+                        page.on('click', (e) => {
+                            e.preventDefault();
+                            if (pageNumber === this.currentPage) return;
+                            this.currentPage = pageNumber;
+                            this.query = { ...this.query, page: this.currentPage };
+
+                            this.fetchLeaderBoard().then(({ data }) => {
+                                this.updateData(data);
+                            }).catch((error) => {
+                                if (error.message !== 'Request already in progress') {
+                                    console.error('Failed to fetch leaderboard:', error);
+                                }
+                            });
+                            this.updatePagination({
+                                currentPage: this.currentPage,
+                                totalPages: this.totalPages
+                            }, query);
+                        });
+                    }
+                    if (viewport.w > 767) {
+                        $(this).find('.part-pled-table-pagin-list').append(page);
+                    }
+                });
+            }
+            isLoading(loading) {
+                $(this).find('.part-pled-table-loading').toggleClass('loading', loading);
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        }
+    }
+    const NotFoundPage = {
+        'not-found-hero-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                this.checkRedirect();
+            }
+            checkRedirect() {
+                let url = window.location.pathname;
+                if (url.includes('/green-supplier/')) {
+                    const pathParts = window.location.pathname.split("/").filter(Boolean);
+                    const pledgeId = pathParts[pathParts.length - 1];
+                    this.getDetail(pledgeId);
+                }
+                else {
+                    this.notFound();
+                    return;
+                }
+            }
+            notFound() {
+                history.replaceState({}, '', `/404`)
+                $('title').text('Not Found')
+                $('.body-inner').removeAttr('data-init-hidden')
+                return;
+            }
+            getDetail(id) {
+                $.ajax({
+                    url: `${domainApi}/api/v1/cms/pledge`,
+                    method: "GET",
+                    data: { pledge_id: id },
+                    headers: {
+                        'Accept': 'application/json',
+                        ...(isStagging() ? { 'cookie': 'uat.gprnt.ai' } : {})
+                    },
+                    success: (data) => {
+                        window.location.href = `/green-supplier?id=${id}`;
+                    },
+                    error: (xhr, status, error) => {
+                        console.error("Lỗi khi gọi API:", error);
+                        this.notFound();
+                    }
+                });
+            }
+            destroy() {
+                this.tlTrigger.kill();
+                // Clean up loading timeout
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
+    }
+    const ParticipantDetailPage = {
+        'part-dl-hero-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+                this.badgeMap = {
+                    'Essential': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92974e4d5d07afb207_logo2.webp",
+                    'Silver': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92035af94bc7ba16d5_logo4.webp",
+                    'Gold': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92f80fbcd35ee1b2d6_logo3.webp",
+                    'Bronze': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf9265e9b80a6769e0f1_logo1.webp",
+                };
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                let url = window.location.pathname;
+                const urlParams = new URLSearchParams(window.location.search);
+                const pledgeId = urlParams.get("id");
+                if (pledgeId) {
+                    const newUrl = `/green-supplier/${pledgeId}`;
+                    window.history.replaceState({}, "", newUrl);
+                }
+                else {
+                    window.location.href = '/green-suppliers'
+                }
+                this.getDetail(pledgeId);
+            }
+            async getDetail(id) {
+                $.ajax({
+                    url: `${domainApi}/api/v1/cms/pledge`,
+                    method: "GET",
+                    headers: {
+                        'Accept': 'application/json',
+                        ...(isStagging() ? { 'cookie': 'uat.gprnt.ai' } : {})
+                    },
+                    data: { pledge_id: id },
+                    success: async (data) => {
+                        switch (data['status']) {
+                            case 'Essential':
+                                $('.part-dl-hero').addClass('part-dl-hero-essential');
+                                $('.show-essential').css('display', 'flex')
+                                break;
+                            case 'Silver':
+                                $('.part-dl-hero').addClass('part-dl-hero-silver');
+                                break;
+                            case 'Gold':
+                                $('.part-dl-hero').addClass('part-dl-hero-gold');
+                                break;
+                            case 'Bronze':
+                                $('.part-dl-hero').addClass('part-dl-hero-bronze');
+                                break;
+                        }
+
+                        if (data['industry'] == '' || !data['website_url']) {
+                            $('.part-dl-hero-social-item-space').hide();
+                        }
+                        $('[data-key]').each(async (idx, item) => {
+                            let key = $(item).attr('data-key');
+                            if (!data[key] && key != 'info-img') {
+                                $(item).parent().hide();
+                                return;
+                            }
+                            else if (key == 'logo_url') {
+                                const isValidImage = await this.checkImageWithAjax(data[key]);
+                                console.log(isValidImage);
+                                if (isValidImage) {
+                                    $(item).attr('src', data[key])
+                                }
+                                else {
+                                    $(item).parent().hide();
+                                }
+                            }
+                            else if (key == 'type_of_company') {
+                                let type = data[key];
+                                if (type == 'sp') {
+                                    $(item).text('Solution')
+                                }
+                                else if (type == 'sme') {
+                                    $(item).text("Business")
+                                }
+                                else {
+                                    $(item).text('Enterprise')
+                                }
+                            }
+                            else if (key == 'pledge_issued_date' || key == 'pledge_expiry_date') {
+                                $(item).text(this.formatDate(data[key]))
+                            }
+                            else if (key == 'website_url') {
+                                let hrefUrl = data[key];
+                                if (hrefUrl && !/^https?:\/\//i.test(hrefUrl)) {
+                                    hrefUrl = 'https://' + hrefUrl;
+                                }
+                                $(item).attr('href', hrefUrl);
+                                $(item).find('.txt').text(this.cleanLink(data[key]));
+                            }
+                            else if (key == 'info-img') {
+                                const badgeUrl = this.badgeMap[data.status];
+                                console.log(data.status)
+                                console.log(badgeUrl)
+                                $(item).attr('src', badgeUrl)
+                            }
+                            else {
+                                $(item).text(data[key])
+                            }
+                        })
+                    },
+                    error: (xhr, status, error) => {
+                        console.error("Lỗi khi gọi API:", error);
+                    }
+                });
+            }
+            getBadgeImage(status, type) {
+                return this.badgeMap[status]?.[type] || null;
+            }
+            async checkImageWithAjax(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = url;
+                });
+            }
+            formatDate(dateStr) {
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+                const date = new Date(dateStr);
+
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = months[date.getMonth()];
+                const year = date.getFullYear();
+
+                return `${day} ${month} ${year}`;
+            }
+            cleanLink(url) {
+                return url.replace(/^https?:\/\/(www\.)?/, '');
+            }
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
+    }
+    const AboutPage = {
+        'about-mission-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                let content = new SplitType('.about-mission-sub-txt', { types: 'lines, words, chars', lineClass: 'bp-line' });
+                let tl = new gsap.timeline({
+                    scrollTrigger: {
+                        trigger: '.about-mission-sub',
+                        start: 'top center',
+                        end: 'bottom center',
+                        scrub: 1,
+                    }
+                })
+                tl.to(content.chars, { color: "#1A3628", duration: 1, stagger: .02 })
+            }
+
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
+        'about-mile-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+            }
+            setup() {
+                let swiperMile = new Swiper(".about-mile-cms", {
+                    slidesPerView: 1.2,
+                    spaceBetween: parseRem(16),
+                    navigation: {
+                        prevEl: ".about-mile-control-item.about-mile-control-item-prev",
+                        nextEl: ".about-mile-control-item.about-mile-control-item-next",
+                    },
+                    breakpoints: {
+                        767: {
+                            spaceBetween: parseRem(24),
+                            slidesPerView: 1.4,
+                        },
+                        991: {
+                            spaceBetween: parseRem(24),
+                            slidesPerView: 2,
+                        }
+                    }
+                });
+            }
+
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+            }
+        },
+        'about-partner-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+                this.swiperDetail = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                this.interact();
+            }
+            truncatePartnerText(maxWords = 50) {
+                this.querySelectorAll('.about-partner-item-sub').forEach((container) => {
+                    const walker = document.createTreeWalker(
+                        container,
+                        NodeFilter.SHOW_TEXT
+                    );
+                    let wordCount = 0;
+                    let currentNode = walker.nextNode();
+
+                    while (currentNode) {
+                        const words = [...currentNode.textContent.matchAll(/\S+/g)];
+
+                        if (words.length && wordCount + words.length >= maxWords) {
+                            const lastWord = words[maxWords - wordCount - 1];
+                            const cutoffOffset = lastWord.index + lastWord[0].length;
+                            const range = document.createRange();
+
+                            currentNode.textContent =
+                                currentNode.textContent.slice(0, cutoffOffset).trimEnd() + '...';
+                            range.setStart(currentNode, currentNode.textContent.length);
+                            range.setEnd(container, container.childNodes.length);
+                            range.deleteContents();
+                            break;
+                        }
+
+                        wordCount += words.length;
+                        currentNode = walker.nextNode();
+                    }
+                });
+            }
+            setup() {
+                this.truncatePartnerText();
+
+                let swiperPartner = new Swiper(".about-partner-cms", {
+                    slidesPerView: 'auto',
+                    spaceBetween: parseRem(8),
+                    navigation: {
+                        prevEl: ".about-partner-control-item.item-prev",
+                        nextEl: ".about-partner-control-item.item-next",
+                    },
+                    pagination: {
+                        el: '.about-partner-cms-pagi',
+                        bulletClass: 'about-partner-cms-pagi-item',
+                        bulletActiveClass: 'active',
+                        clickable: true,
+                    },
+                    breakpoints: {
+                        767: {
+                            spaceBetween: parseRem(16),
+                            slidesPerView: 2,
+                        },
+                        991: {
+                            spaceBetween: parseRem(24),
+                            slidesPerView: 3,
+                        }
+                    }
+                });
+                this.swiperDetail = new Swiper(".about-popup-cms", {
+                    slidesPerView: 1,
+                    spaceBetween: parseRem(16),
+                    //effect fade
+                    effect: 'fade',
+                    fadeEffect: {
+                        crossFade: true,
+                    },
+                    navigation: {
+                        prevEl: ".about-popup-navi-item.item-prev",
+                        nextEl: ".about-popup-navi-item.item-next",
+                    },
+                    on: {
+                        init: function (swiper) {
+                            $('.number-total').text(swiper.slides.length);
+                        },
+                        slideChange: function (swiper) {
+                            $('.number-current').text(swiper.realIndex + 1);
+                        }
+                    }
+                });
+            }
+            interact() {
+                $('.about-partner-item-read').on('click', (e) => {
+                    let index = $(e.currentTarget).closest('.about-partner-item').index();
+                    this.swiperDetail.slideTo(index);
+                    $('.about-popup').addClass('active');
+                })
+                $('.about-popup-close').on('click', () => {
+                    $('.about-popup').removeClass('active');
+                })
+                $('.about-popup').on('click', (e) => {
+                    if ($(e.target).closest('.about-popup-main').length === 0) {
+                        $('.about-popup').removeClass('active');
+                    }
+                })
+            }
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+                if (this.swiperDetail) {
+                    this.swiperDetail.destroy();
+                }
+            }
+        },
+        'home-event-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                if (viewport.w > 767) {
+                    this.interact();
+                }
+            }
+            setup() {
+                $('.home-event-item').each(function () {
+                    let item = $(this);
+                    let hasExternalLink = item.find('.external-link').length > 0;
+                    if (hasExternalLink) {
+                        item.find('.home-event-item-inner').attr('target', '_blank');
+                        let linkExternal = item.find('.external-link').attr('data-link');
+                        console.log(linkExternal)
+                        item.find('.home-event-item-inner').attr('href', linkExternal);
+                    }
+                })
+                if (viewport.w < 992) {
+                    $('.home-event-cms').addClass('swiper');
+                    $('.home-event-list').addClass('swiper-wrapper');
+                    $('.home-event-item').addClass('swiper-slide');
+                    let swiperEvent = new Swiper(".home-event-cms", {
+                        slidesPerView: 'auto',
+                        spaceBetween: parseRem(8),
+                        navigation: {
+                            prevEl: ".home-event-control-item-prev",
+                            nextEl: ".home-event-control-item-next",
+                        },
+                        pagination: {
+                            el: '.home-event-pagi',
+                            bulletClass: 'home-event-pagi-item',
+                            bulletActiveClass: 'active',
+                            clickable: true,
+                        },
+                        breakpoints: {
+                            767: {
+                                spaceBetween: parseRem(16),
+                            }
+                        }
+                    });
+                }
+            }
+            interact() {
+
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        },
+    }
+    class PageManager {
+        constructor(page) {
+            if (!page || typeof page !== 'object') {
+                throw new Error('Invalid page configuration');
+            }
+
+            // Store registered component names to prevent duplicate registration
+            this.registeredComponents = new Set();
+
+            this.sections = Object.entries(page).map(([name, Component]) => {
+                if (typeof Component !== 'function') {
+                    throw new Error(`Section "${name}" must be a class constructor`);
+                }
+
+                // Only register the custom element if not already registered
+                if (!this.registeredComponents.has(name)) {
+                    try {
+                        customElements.define(name, Component);
+                        this.registeredComponents.add(name);
+                    } catch (error) {
+                        // Handle case where element is already defined
+                        console.warn(`Custom element "${name}" is already registered`);
+                    }
+                }
+
+                return new Component();
+            });
+        }
+
+        // Method to cleanup sections if needed
+        destroy() {
+            this.sections.forEach(section => {
+                if (typeof section.destroy === 'function') {
+                    section.destroy();
+                }
+            });
+        }
+    }
+
+    const pageConfig = {
+        home: HomePage,
+        tpEvent: TpEventPage,
+        term: TermPage,
+        participant: ParticipantPage,
+        participantDetail: ParticipantDetailPage,
+        notFound: NotFoundPage,
+        about: AboutPage,
+    };
+    const registry = {};
+    registry[pageName]?.destroy();
+    pageConfig[pageName] && (registry[pageName] = new PageManager(pageConfig[pageName]));
+    refreshOnBreakpoint();
+}
+window.onload = script
