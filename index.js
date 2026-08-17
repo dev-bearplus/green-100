@@ -933,7 +933,7 @@ const script = () => {
                     industry: [],
                     category: []
                 }
-                this.query = { type: 'sme', limit: 10, page: 1 }
+                this.query = { type: 'sme', limit: 20, page: 1 }
             }
             connectedCallback() {
                 this.tlTrigger = gsap.timeline({
