@@ -357,9 +357,98 @@ const script = () => {
                         })
                     },
                     error: (xhr, status, error) => {
-                        console.error("Lá»—i khi gá»i API:", error);
+                        console.error("Lá»—i khi gá» i API:", error);
                     }
                 });
+            }
+        },
+        'home-video-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+                this.swiperVideo = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                this.interact();
+            }
+            setup() {
+                if (viewport.w < 768) {
+                    $(this).find('.home-video-cms').addClass('swiper');
+                    $(this).find('.home-video-list').addClass('swiper-wrapper');
+                    $(this).find('.home-video-item').addClass('swiper-slide');
+                    const $container = $(this).find('.home-video-cms');
+                    if ($container.length) {
+                        this.swiperVideo = new Swiper($container[0], {
+                            slidesPerView: 'auto',
+                            spaceBetween: parseRem(8),
+                            pagination: {
+                                el: '.home-video-pagi',
+                                bulletClass: 'home-video-pagi-item',
+                                bulletActiveClass: 'active',
+                                clickable: true,
+                            },
+                        });
+                    }
+                }
+            }
+            interact() {
+                const $videoItems = $(this).find('.home-video-item');
+                const $popup = $('.video-popup');
+                const $iframe = $popup.find('.video-popup-main iframe');
+                const $closeBtn = $popup.find('.video-popup-close');
+
+                function formatVimeoUrl(url) {
+                    if (!url) return '';
+                    let cleanUrl = url;
+                    if (url.includes('vimeo.com/')) {
+                        const videoId = url.split('vimeo.com/')[1].split('?')[0].split('/')[0];
+                        cleanUrl = `https://player.vimeo.com/video/${videoId}`;
+                    }
+                    const separator = cleanUrl.includes('?') ? '&' : '?';
+                    return `${cleanUrl}${separator}autoplay=1&muted=1&loop=1`;
+                }
+
+                $videoItems.on('click', (e) => {
+                    const videoUrl = $(e.currentTarget).attr('data-video');
+                    if (videoUrl) {
+                        const finalUrl = formatVimeoUrl(videoUrl);
+                        $iframe.attr('src', finalUrl);
+                        $popup.addClass('active');
+                    }
+                });
+
+                const closePopup = () => {
+                    $popup.removeClass('active');
+                    $iframe.attr('src', '');
+                };
+
+                $closeBtn.on('click', closePopup);
+
+                $popup.on('click', (e) => {
+                    if ($(e.target).closest('.video-popup-main').length === 0) {
+                        closePopup();
+                    }
+                });
+            }
+            destroy() {
+                this.tlTrigger.kill();
+                if (this.swiperVideo) {
+                    this.swiperVideo.destroy();
+                }
             }
         },
         'home-faq-wrap': class extends HTMLElement {
@@ -916,6 +1005,112 @@ const script = () => {
             }
         }
     }
+    const NewPage = {
+        'new-video-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.tlTrigger = null;
+            }
+            connectedCallback() {
+                this.tlTrigger = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: this,
+                        start: 'top bottom+=50%',
+                        end: 'bottom top-=50%',
+                        once: true,
+                        onEnter: () => {
+                            this.onTrigger();
+                        }
+                    }
+                });
+            }
+            onTrigger() {
+                this.setup();
+                this.interact();
+            }
+
+            setup() {
+                if (viewport.w > 767) {
+                    let swiperEvent = new Swiper(".new-video-cms", {
+                        slidesPerView: 3,
+                        spaceBetween: parseRem(16),
+                        navigation: {
+                            prevEl: ".new-video-control-item.item-prev",
+                            nextEl: ".new-video-control-item.item-next",
+                        },
+                        breakpoints: {
+                            992: {
+                                slidesPerView: 6,
+                                spaceBetween: parseRem(24),
+                            }
+                        }
+                    });
+                }
+                else {
+                    const $items = $(this).find('.new-video-item');
+                    const $viewMoreBtn = $(this).find('.new-video-btn');
+                    let visibleCount = 6;
+
+                    if ($items.length <= visibleCount) {
+                        $viewMoreBtn.hide();
+                    } else {
+                        $items.slice(visibleCount).hide();
+                        $viewMoreBtn.show();
+                        $viewMoreBtn.on('click', (e) => {
+                            e.preventDefault();
+                            visibleCount += 6;
+                            $items.slice(0, visibleCount).fadeIn();
+                            if (visibleCount >= $items.length) {
+                                $viewMoreBtn.hide();
+                            }
+                        });
+                    }
+                }
+            }
+            interact() {
+                const $videoItems = $(this).find('.new-video-item');
+                const $popup = $('.video-popup');
+                const $iframe = $popup.find('.video-popup-main iframe');
+                const $closeBtn = $popup.find('.video-popup-close');
+
+                function formatVimeoUrl(url) {
+                    if (!url) return '';
+                    let cleanUrl = url;
+                    if (url.includes('vimeo.com/')) {
+                        const videoId = url.split('vimeo.com/')[1].split('?')[0].split('/')[0];
+                        cleanUrl = `https://player.vimeo.com/video/${videoId}`;
+                    }
+                    const separator = cleanUrl.includes('?') ? '&' : '?';
+                    return `${cleanUrl}${separator}autoplay=1&muted=1&loop=1`;
+                }
+
+                $videoItems.on('click', (e) => {
+                    const videoUrl = $(e.currentTarget).attr('data-video');
+                    if (videoUrl) {
+                        const finalUrl = formatVimeoUrl(videoUrl);
+                        $iframe.attr('src', finalUrl);
+                        $popup.addClass('active');
+                    }
+                });
+
+                const closePopup = () => {
+                    $popup.removeClass('active');
+                    $iframe.attr('src', '');
+                };
+
+                $closeBtn.on('click', closePopup);
+
+                $popup.on('click', (e) => {
+                    if ($(e.target).closest('.video-popup-main').length === 0) {
+                        closePopup();
+                    }
+                });
+            }
+            destroy() {
+                this.tlTrigger.kill();
+            }
+        }
+    }
     const ParticipantPage = {
         'part-pled-wrap': class extends HTMLElement {
             constructor() {
@@ -1463,7 +1658,7 @@ const script = () => {
                 }
                 else {
                     window.location.href = '/green-supplier-registry'
-					return;
+                    return;
                 }
                 this.getDetail(pledgeId);
             }
@@ -1921,6 +2116,7 @@ const script = () => {
         participantDetail: ParticipantDetailPage,
         notFound: NotFoundPage,
         about: AboutPage,
+        new: NewPage
     };
     const registry = {};
     registry[pageName]?.destroy();
