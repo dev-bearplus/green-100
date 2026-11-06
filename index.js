@@ -533,6 +533,7 @@ const script = () => {
                 // Scoped to this section: home-qb-wrap reuses .home-partner-main-item.
                 const items = $(this).find('.home-partner-main-item');
                 const btn = $(this).find('.home-partner-btn-view-more');
+                if (!btn.length) return;
                 const limit = viewport.w > 991 ? 15 : viewport.w > 767 ? 9 : 6;
                 if (items.length <= limit) return btn.hide();
                 btn.show();
