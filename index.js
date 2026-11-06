@@ -710,10 +710,12 @@ const script = () => {
                 const isMobile = () => matchMedia('(max-width: 991px)').matches;
                 const setLayout = () => {
                     const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 10;
-                    // Card height must fit its absolutely-positioned .g100-open-main content.
+                    // Card height must fit its .g100-open-main content. main is stretched (top + bottom),
+                    // so measure its children: main.scrollHeight follows the card height and grew 2px per hover.
                     const contentHeight = (card) => {
                         const main = card.querySelector('.g100-open-main');
-                        return (parseFloat(getComputedStyle(main).top) || 0) + main.scrollHeight + 2 * rootSize + 4;
+                        const inner = Math.max(0, ...[...main.children].map(c => c.offsetTop + c.offsetHeight));
+                        return (parseFloat(getComputedStyle(main).top) || 0) + inner + 2 * rootSize + 4;
                     };
                     if (isMobile()) {
                         row.style.removeProperty('grid-template-columns');
