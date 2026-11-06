@@ -706,6 +706,8 @@ const script = () => {
                 row.classList.add('g100-ready', 'g100-initializing');
 
                 let active = 0;
+                // Tablet/mobile: every enabled card stays open. Crossing 991px reloads the page (refreshOnBreakpoint).
+                const isMobile = () => matchMedia('(max-width: 991px)').matches;
                 const setLayout = () => {
                     const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 10;
                     // Card height must fit its absolutely-positioned .g100-open-main content.
@@ -713,10 +715,10 @@ const script = () => {
                         const main = card.querySelector('.g100-open-main');
                         return (parseFloat(getComputedStyle(main).top) || 0) + main.scrollHeight + 2 * rootSize + 4;
                     };
-                    if (matchMedia('(max-width: 991px)').matches) {
+                    if (isMobile()) {
                         row.style.removeProperty('grid-template-columns');
-                        cards.forEach((card, index) => {
-                            if (index !== active || card.classList.contains('disable')) {
+                        cards.forEach((card) => {
+                            if (card.classList.contains('disable')) {
                                 card.style.removeProperty('height');
                                 return;
                             }
@@ -740,9 +742,10 @@ const script = () => {
                     if (cards[index].classList.contains('disable')) return;
                     active = index;
                     cards.forEach((card, i) => {
-                        const expanded = i === index;
+                        const disabled = card.classList.contains('disable');
+                        const expanded = isMobile() ? !disabled : i === index;
                         card.classList.toggle('is-expanded', expanded);
-                        if (card.classList.contains('disable')) return;
+                        if (disabled) return;
                         card.setAttribute('aria-expanded', String(expanded));
                         card.querySelector('.g100-compact')?.setAttribute('aria-hidden', String(expanded));
                         card.querySelector('.g100-open')?.setAttribute('aria-hidden', String(!expanded));
