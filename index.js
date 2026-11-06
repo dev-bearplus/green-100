@@ -671,6 +671,7 @@ const script = () => {
                 this.tlTrigger = null;
             }
             connectedCallback() {
+                this.initCards();
                 this.tlTrigger = gsap.timeline({
                     scrollTrigger: {
                         trigger: this,
@@ -687,6 +688,94 @@ const script = () => {
                 this.activeIndex = -1;
                 this.allItems = $('.home-hiwn-content-inner');
                 this.interact();
+            }
+            initCards() {
+                const row = this.querySelector('.home-hiwn-content-item-new')?.parentElement;
+                if (!row || row.dataset.g100LiveReady) return;
+                const cards = [...row.querySelectorAll(':scope > .home-hiwn-content-item-new')].slice(0, 4);
+                if (cards.length !== 4) return;
+                row.dataset.g100LiveReady = 'true';
+                row.classList.add('g100-ready', 'g100-initializing');
+
+                let active = 0;
+                const setLayout = () => {
+                    const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 10;
+                    // Card height must fit its absolutely-positioned .g100-open-main content.
+                    const contentHeight = (card) => {
+                        const main = card.querySelector('.g100-open-main');
+                        return (parseFloat(getComputedStyle(main).top) || 0) + main.scrollHeight + 2 * rootSize + 4;
+                    };
+                    if (matchMedia('(max-width: 991px)').matches) {
+                        row.style.removeProperty('grid-template-columns');
+                        cards.forEach((card, index) => {
+                            if (index !== active || card.classList.contains('disable')) {
+                                card.style.removeProperty('height');
+                                return;
+                            }
+                            const minimum = (matchMedia('(max-width: 767px)').matches ? 58 : 51) * rootSize;
+                            card.style.height = `${Math.ceil(Math.max(minimum, contentHeight(card)))}px`;
+                        });
+                        return;
+                    }
+                    const width = row.clientWidth;
+                    if (!width) return;
+                    const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+                    const large = Math.min(55.4 * rootSize, width * .55);
+                    const small = Math.max(0, (width - large - 3 * gap) / 3);
+                    row.style.setProperty('--g100-large-width', `${large}px`);
+                    row.style.setProperty('--g100-small-width', `${small}px`);
+                    row.style.gridTemplateColumns = cards.map((_, index) => `${index === active ? large : small}px`).join(' ');
+                    const height = `${Math.ceil(Math.max(55 * rootSize, ...cards.slice(0, 2).map(contentHeight)))}px`;
+                    cards.forEach(card => { card.style.height = height; });
+                };
+                const show = (index) => {
+                    if (cards[index].classList.contains('disable')) return;
+                    active = index;
+                    cards.forEach((card, i) => {
+                        const expanded = i === index;
+                        card.classList.toggle('is-expanded', expanded);
+                        if (card.classList.contains('disable')) return;
+                        card.setAttribute('aria-expanded', String(expanded));
+                        card.querySelector('.g100-compact')?.setAttribute('aria-hidden', String(expanded));
+                        card.querySelector('.g100-open')?.setAttribute('aria-hidden', String(!expanded));
+                    });
+                    setLayout();
+                };
+
+                cards.forEach((card, index) => {
+                    if (index >= 2) {
+                        card.classList.add('disable');
+                        card.querySelector('.g100-open')?.setAttribute('aria-hidden', 'true');
+                        return;
+                    }
+                    card.setAttribute('role', 'button');
+                    card.setAttribute('tabindex', '0');
+                    card.setAttribute('aria-label', `Show ${index === 0 ? 'Essential' : 'Bronze'} details`);
+                    card.addEventListener('pointerenter', (e) => {
+                        if (e.pointerType === 'mouse' || e.pointerType === 'pen') show(index);
+                    });
+                    card.addEventListener('focus', () => show(index));
+                    card.addEventListener('click', () => show(index));
+                    card.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            show(index);
+                        }
+                    });
+                });
+
+                show(0);
+                window.addEventListener('resize', setLayout, { passive: true });
+                document.fonts?.ready.then(setLayout);
+                let observedWidth = row.clientWidth;
+                new ResizeObserver(entries => {
+                    const width = entries[0].contentRect.width;
+                    if (Math.abs(width - observedWidth) > 1) {
+                        observedWidth = width;
+                        setLayout();
+                    }
+                }).observe(row);
+                requestAnimationFrame(() => row.classList.remove('g100-initializing'));
             }
             interact() {
                 viewport.w < 767 && header.registerDependent('.home-hiwn-tab-wrap');
