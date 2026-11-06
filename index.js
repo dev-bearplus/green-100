@@ -511,6 +511,8 @@ const script = () => {
                 this.tlTrigger = null;
             }
             connectedCallback() {
+                // Run on load, not on scroll: a reload restored past this section would skip the hide.
+                this.setup();
                 this.tlTrigger = gsap.timeline({
                     scrollTrigger: {
                         trigger: this,
@@ -524,20 +526,20 @@ const script = () => {
                 });
             }
             onTrigger() {
-                this.setup();
                 this.interact();
             }
             setup() {
-                if (viewport.w < 768) {
-                    if ($('.home-partner-main-item').length > 10) {
-                        $('.home-partner-viewmore').show();
-                        $('.home-partner-main-item').slice(10).hide();
-                        $('.home-partner-viewmore').on('click', () => {
-                            $('.home-partner-main-item').slice(10).fadeIn();
-                            $('.home-partner-viewmore').hide();
-                        })
-                    }
-                }
+                // Scoped to this section: home-qb-wrap reuses .home-partner-main-item.
+                const items = $(this).find('.home-partner-main-item');
+                const btn = $(this).find('.home-partner-btn-view-more');
+                const limit = viewport.w > 991 ? 15 : viewport.w > 767 ? 9 : 6;
+                if (items.length <= limit) return btn.hide();
+                btn.show();
+                items.slice(limit).hide();
+                btn.on('click', () => {
+                    items.slice(limit).fadeIn();
+                    btn.hide();
+                })
             }
             interact() {
 
