@@ -526,6 +526,7 @@ const script = () => {
                 });
             }
             onTrigger() {
+                this.setup();
                 this.interact();
             }
             setup() {
