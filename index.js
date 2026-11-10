@@ -156,6 +156,12 @@ const script = () => {
                 this.el.classList.remove('on-open')
                 this.setupMobile();
             }
+            if (window.innerWidth < 992) {
+                this.toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.toggleMenu();
+                })
+            }
 
         }
         setupMobile() {
@@ -192,10 +198,7 @@ const script = () => {
                     }
                 })
             })
-            this.toggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.toggleMenu();
-            })
+
         }
         setupDesktop() {
             this.allLinks.forEach((item, idx) => {
