@@ -780,7 +780,7 @@ const script = () => {
                     });
                 });
 
-                show(0);
+                show(1);
                 window.addEventListener('resize', setLayout, { passive: true });
                 document.fonts?.ready.then(setLayout);
                 let observedWidth = row.clientWidth;
