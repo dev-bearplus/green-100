@@ -534,21 +534,23 @@ const script = () => {
             }
             setup() {
                 // Scoped to this section: home-qb-wrap reuses .home-partner-main-item.
-                const items = $(this).find('.home-partner-main-item');
-                const btn = $(this).find('.home-partner-btn-view-more');
-                if (!btn.length || !items.length) return;
-                // 3 rows total, counting the rows of home-qb-wrap's list shown right above.
-                const rowsAbove = new Set($('home-qb-wrap .home-partner-main-item:visible').map((_, el) => el.offsetTop).get()).size;
-                // Hidden items report offsetTop 0, same as the first row, so only count rendered ones.
-                const perRow = items.filter((_, el) => el.offsetParent && el.offsetTop === items[0].offsetTop).length;
-                const limit = perRow * Math.max(1, 3 - rowsAbove);
-                if (items.length <= limit) return btn.hide();
-                btn.show();
-                items.slice(limit).hide();
-                btn.on('click', () => {
-                    items.slice(limit).fadeIn();
-                    btn.hide();
-                })
+                if (!isStagging()) {
+                    const items = $(this).find('.home-partner-main-item');
+                    const btn = $(this).find('.home-partner-btn-view-more');
+                    if (!btn.length || !items.length) return;
+                    // 3 rows total, counting the rows of home-qb-wrap's list shown right above.
+                    const rowsAbove = new Set($('home-qb-wrap .home-partner-main-item:visible').map((_, el) => el.offsetTop).get()).size;
+                    // Hidden items report offsetTop 0, same as the first row, so only count rendered ones.
+                    const perRow = items.filter((_, el) => el.offsetParent && el.offsetTop === items[0].offsetTop).length;
+                    const limit = perRow * Math.max(1, 3 - rowsAbove);
+                    if (items.length <= limit) return btn.hide();
+                    btn.show();
+                    items.slice(limit).hide();
+                    btn.on('click', () => {
+                        items.slice(limit).fadeIn();
+                        btn.hide();
+                    })
+                }
             }
             interact() {
 
