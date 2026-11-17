@@ -95,6 +95,23 @@ const script = () => {
 
     const pageName = $('.main-inner').attr('data-barba-namespace');
 
+    // Topbar: hide immediately if it was closed earlier in this session, otherwise slide up on icon click
+    const TOPBAR_KEY = 'topbarClosed';
+    const isTopbarClosed = () => {
+        try { return sessionStorage.getItem(TOPBAR_KEY) === '1'; } catch (e) { return false; }
+    }
+    if (isTopbarClosed()) {
+        $('.topbar').hide();
+    }
+    $('.topbar-ic').on('click', function (e) {
+        e.preventDefault();
+        try { sessionStorage.setItem(TOPBAR_KEY, '1'); } catch (e) { }
+        $('.topbar').slideUp(400, () => {
+            header.onHideDependent?.();
+            ScrollTrigger.refresh();
+        });
+    });
+
     // Check params or hash to scroll on page load
     window.addEventListener('load', () => {
         let params = new URLSearchParams(window.location.search);
