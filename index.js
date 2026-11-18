@@ -1763,10 +1763,10 @@ const script = () => {
                 super();
                 this.tlTrigger = null;
                 this.badgeMap = {
-                    'Essential': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92974e4d5d07afb207_logo2.webp",
-                    'Silver': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92035af94bc7ba16d5_logo4.webp",
-                    'Gold': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92f80fbcd35ee1b2d6_logo3.webp",
-                    'Bronze': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf9265e9b80a6769e0f1_logo1.webp",
+                    'Essential': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6af431e70dcdd5aa145e740d_essential.avif",
+                    'Silver': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6af431e7b75f6fd8159f455c_silver.avif",
+                    'Gold': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6af431e8f60304cc20c8acd4_gold.avif",
+                    'Bronze': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6af431e87089e1f9fe63e32c_bronze.avif",
                 };
             }
             connectedCallback() {
@@ -1822,6 +1822,7 @@ const script = () => {
                                 break;
                             case 'Bronze':
                                 $('.part-dl-hero').addClass('part-dl-hero-bronze');
+                                $('[data-awarded]').text('Verified by:');
                                 break;
                         }
 
@@ -2244,6 +2245,40 @@ const script = () => {
             });
         }
     }
+
+    // One shared tooltip for [data-tooltip], fixed on body so cards with overflow:hidden can't clip it.
+    const initTooltip = () => {
+        const tip = $('<div role="tooltip" class="g100-tooltip"></div>').css({
+            position: 'fixed', zIndex: 99, maxWidth: '28rem', padding: '.8rem 1.2rem',
+            background: '#1a1a1a', color: '#fff', fontSize: '1.2rem', lineHeight: 1.4,
+            borderRadius: '.6rem', pointerEvents: 'none', opacity: 0, transition: 'opacity .2s'
+        }).appendTo('body');
+        let current = null;
+        const show = (el) => {
+            current = el;
+            tip.text(el.dataset.tooltip).css('opacity', 1);
+            const r = el.getBoundingClientRect(), w = tip.outerWidth(), h = tip.outerHeight();
+            const left = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), innerWidth - w - 8);
+            const gap = 2;
+            const top = r.top - h - gap < 8 ? r.bottom + gap : r.top - h - gap; // flip below if no room above
+            tip.css({ left, top });
+        };
+        const hide = () => { current = null; tip.css('opacity', 0); };
+        // Hover devices use mouseenter/leave; touch toggles on tap (touch also fires fake mouseenter, so skip it there).
+        const canHover = matchMedia('(hover: hover)').matches;
+        if (canHover) {
+            $(document)
+                .on('mouseenter', '[data-tooltip]', e => show(e.currentTarget))
+                .on('mouseleave', '[data-tooltip]', hide);
+        }
+        $(document).on('click', e => {
+            const el = e.target.closest('[data-tooltip]');
+            if (!el) hide();
+            else if (!canHover) el === current ? hide() : show(el);
+        });
+        $(window).on('scroll', hide);
+    };
+    initTooltip();
 
     const pageConfig = {
         home: HomePage,
