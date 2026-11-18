@@ -525,6 +525,19 @@ const script = () => {
                 }
             }
         },
+        // Defined before home-partner-wrap: its view-more logic counts this section's rows, so the marquee must be built first.
+        'home-qb-wrap': class extends HTMLElement {
+            connectedCallback() {
+                this.setup();
+            }
+            setup() {
+                // One Marquee per list: the class clones a single list's items, so passing all 3 at once would mix their logos.
+                $(this).find('.home-partner-main-inner [data-marquee="list"]').each((_, list) => {
+                    new Marquee($(list), 40).setup(false);
+                });
+            }
+            destroy() {}
+        },
         'home-partner-wrap': class extends HTMLElement {
             constructor() {
                 super();
