@@ -1750,10 +1750,10 @@ const script = () => {
                 super();
                 this.tlTrigger = null;
                 this.badgeMap = {
-                    'Essential': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92974e4d5d07afb207_logo2.webp",
-                    'Silver': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92035af94bc7ba16d5_logo4.webp",
-                    'Gold': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf92f80fbcd35ee1b2d6_logo3.webp",
-                    'Bronze': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/69ddbf9265e9b80a6769e0f1_logo1.webp",
+                    'Essential': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6af431e70dcdd5aa145e740d_essential.avif",
+                    'Silver': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6af431e7b75f6fd8159f455c_silver.avif",
+                    'Gold': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6af431e8f60304cc20c8acd4_gold.avif",
+                    'Bronze': "https://cdn.prod.website-files.com/68b8587b9524e7690bad4973/6af431e87089e1f9fe63e32c_bronze.avif",
                 };
             }
             connectedCallback() {
@@ -1809,6 +1809,7 @@ const script = () => {
                                 break;
                             case 'Bronze':
                                 $('.part-dl-hero').addClass('part-dl-hero-bronze');
+                                $('[data-awarded]').text('Verified by:');
                                 break;
                         }
 
