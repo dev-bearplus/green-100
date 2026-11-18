@@ -34,6 +34,90 @@ const script = () => {
             });
         }
     }
+    // JS-driven marquee (right → left) that pauses on mouse hover and can be dragged.
+    class DragMarquee {
+        constructor(list, speed = 40) {
+            this.el = $(list)[0];
+            this.speed = speed; // px per second
+            this.x = 0;
+            this.factor = { value: 1 }; // eased to 0 while hovered
+            this.drag = null;
+            this.dragged = false;
+        }
+        setup() {
+            const item = $(this.el).find('[data-marquee="item"]').first();
+            const itemWidth = item.outerWidth();
+            if (!itemWidth) return;
+            const cloneAmount = Math.ceil(viewport.w / itemWidth) + 1;
+            for (let i = 0; i < cloneAmount; i++) $(this.el).append(item.clone());
+            this.copies = $(this.el).children('[data-marquee="item"]').toArray();
+            this.setX = gsap.quickSetter(this.copies, 'x', 'px');
+            this.measure();
+            // Logos load lazily, so the loop distance can change after setup.
+            this.resizeObserver = new ResizeObserver(() => this.measure());
+            this.resizeObserver.observe(this.copies[0]);
+
+            Object.assign(this.el.style, { touchAction: 'pan-y', cursor: 'grab', userSelect: 'none' });
+
+            this.tick = (time, deltaTime) => {
+                if (!this.drag) this.x -= this.speed * this.factor.value * deltaTime / 1000;
+                this.setX(this.wrap(this.x));
+            };
+            gsap.ticker.add(this.tick);
+            this.bindEvents();
+        }
+        measure() {
+            // Distance between two copies, so any gap/margin between them is included.
+            const distance = this.copies[1].offsetLeft - this.copies[0].offsetLeft;
+            if (distance > 0) this.wrap = gsap.utils.wrap(-distance, 0);
+        }
+        setFactor(value) {
+            gsap.to(this.factor, { value, duration: 0.4, ease: 'power2.out', overwrite: true });
+        }
+        bindEvents() {
+            this.onMove = (e) => {
+                const dx = e.clientX - this.drag.startX;
+                if (Math.abs(dx) > 5) this.dragged = true;
+                this.x = this.drag.startPos + dx;
+            };
+            this.onUp = () => {
+                this.drag = null;
+                this.el.style.cursor = 'grab';
+                window.removeEventListener('pointermove', this.onMove);
+                window.removeEventListener('pointerup', this.onUp);
+                window.removeEventListener('pointercancel', this.onUp);
+                // Drag may end outside the list, where pointerleave was skipped.
+                if (!this.el.matches(':hover')) this.setFactor(1);
+            };
+            this.el.addEventListener('pointerenter', (e) => {
+                if (e.pointerType === 'mouse') this.setFactor(0);
+            });
+            this.el.addEventListener('pointerleave', (e) => {
+                if (e.pointerType === 'mouse' && !this.drag) this.setFactor(1);
+            });
+            this.el.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0) return;
+                this.drag = { startX: e.clientX, startPos: this.x };
+                this.dragged = false;
+                this.el.style.cursor = 'grabbing';
+                window.addEventListener('pointermove', this.onMove);
+                window.addEventListener('pointerup', this.onUp);
+                window.addEventListener('pointercancel', this.onUp);
+            });
+            // Logos are links: don't open one when the pointer was released after a drag.
+            this.el.addEventListener('click', (e) => {
+                if (!this.dragged) return;
+                e.preventDefault();
+                e.stopPropagation();
+                this.dragged = false;
+            }, true);
+            this.el.addEventListener('dragstart', (e) => e.preventDefault());
+        }
+        destroy() {
+            if (this.tick) gsap.ticker.remove(this.tick);
+            if (this.resizeObserver) this.resizeObserver.disconnect();
+        }
+    }
     const viewport = {
         w: window.innerWidth,
         h: window.innerHeight,
@@ -527,16 +611,24 @@ const script = () => {
         },
         // Defined before home-partner-wrap: its view-more logic counts this section's rows, so the marquee must be built first.
         'home-qb-wrap': class extends HTMLElement {
+            constructor() {
+                super();
+                this.marquees = [];
+            }
             connectedCallback() {
                 this.setup();
             }
             setup() {
-                // One Marquee per list: the class clones a single list's items, so passing all 3 at once would mix their logos.
-                $(this).find('.home-partner-main-inner [data-marquee="list"]').each((_, list) => {
-                    new Marquee($(list), 40).setup(false);
+                // One marquee per list so each row keeps its own logos.
+                this.marquees = $(this).find('.home-partner-main-inner [data-marquee="list"]').toArray().map((list) => {
+                    const marquee = new DragMarquee(list, 40);
+                    marquee.setup();
+                    return marquee;
                 });
             }
-            destroy() {}
+            destroy() {
+                this.marquees.forEach((marquee) => marquee.destroy());
+            }
         },
         'home-partner-wrap': class extends HTMLElement {
             constructor() {
