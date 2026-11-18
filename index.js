@@ -2233,6 +2233,40 @@ const script = () => {
         }
     }
 
+    // One shared tooltip for [data-tooltip], fixed on body so cards with overflow:hidden can't clip it.
+    const initTooltip = () => {
+        const tip = $('<div role="tooltip" class="g100-tooltip"></div>').css({
+            position: 'fixed', zIndex: 99, maxWidth: '28rem', padding: '.8rem 1.2rem',
+            background: '#1a1a1a', color: '#fff', fontSize: '1.2rem', lineHeight: 1.4,
+            borderRadius: '.6rem', pointerEvents: 'none', opacity: 0, transition: 'opacity .2s'
+        }).appendTo('body');
+        let current = null;
+        const show = (el) => {
+            current = el;
+            tip.text(el.dataset.tooltip).css('opacity', 1);
+            const r = el.getBoundingClientRect(), w = tip.outerWidth(), h = tip.outerHeight();
+            const left = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), innerWidth - w - 8);
+            const gap = 2;
+            const top = r.top - h - gap < 8 ? r.bottom + gap : r.top - h - gap; // flip below if no room above
+            tip.css({ left, top });
+        };
+        const hide = () => { current = null; tip.css('opacity', 0); };
+        // Hover devices use mouseenter/leave; touch toggles on tap (touch also fires fake mouseenter, so skip it there).
+        const canHover = matchMedia('(hover: hover)').matches;
+        if (canHover) {
+            $(document)
+                .on('mouseenter', '[data-tooltip]', e => show(e.currentTarget))
+                .on('mouseleave', '[data-tooltip]', hide);
+        }
+        $(document).on('click', e => {
+            const el = e.target.closest('[data-tooltip]');
+            if (!el) hide();
+            else if (!canHover) el === current ? hide() : show(el);
+        });
+        $(window).on('scroll', hide);
+    };
+    initTooltip();
+
     const pageConfig = {
         home: HomePage,
         tpEvent: TpEventPage,
