@@ -1641,8 +1641,8 @@ const script = () => {
             }
             updateData(data) {
                 $(this).find('.part-pled-table-list').empty();
-                // hide suppliers whose status hasn't been assigned yet
-                data.filter((item) => item.pledge_status !== null).forEach((item) => {
+                // hide suppliers with no status yet, or no pledge_id (their View link would 404)
+                data.filter((item) => item.pledge_status !== null && item.pledge_id).forEach((item) => {
                     let row = this.rowDOM.clone();
                     Object.keys(item).forEach((key) => {
                         if ($(row).find(`[data-value="${key}"]`).length) {
