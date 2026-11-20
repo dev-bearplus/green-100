@@ -1403,7 +1403,8 @@ const script = () => {
                                 'Accept': 'application/json',
                                 ...(isStagging() ? { 'cookie': 'uat.gprnt.ai' } : {})
                             },
-                            cache: "force-cache"
+                            // revalidate via ETag so stale leaderboard data in old browser caches gets replaced
+                            cache: "no-cache"
                         }).then((res) => res);
                         if (response.ok) {
                             let data = await response.json();
@@ -1640,7 +1641,8 @@ const script = () => {
             }
             updateData(data) {
                 $(this).find('.part-pled-table-list').empty();
-                data.forEach((item) => {
+                // hide suppliers whose status hasn't been assigned yet
+                data.filter((item) => item.pledge_status !== null).forEach((item) => {
                     let row = this.rowDOM.clone();
                     Object.keys(item).forEach((key) => {
                         if ($(row).find(`[data-value="${key}"]`).length) {
@@ -1663,7 +1665,7 @@ const script = () => {
                             }
                             else if (key === 'company_name') {
                                 $(row).find(`[data-value="${key}"] a`).attr('href', `/green-supplier/${item['pledge_id']}`);
-                                $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                                $(row).find(`[data-value="${key}"] .txt`).text(item[key] != null && item[key] !== '' ? item[key] : '-');
                             }
                             else if (key === 'pledge_date') {
                                 $(row).find(`[data-value="${key}"] .txt`).text(item[key] ? new Date(item[key]).toLocaleDateString('en-GB', {
@@ -1677,11 +1679,11 @@ const script = () => {
                                     $(row).find(`[data-value="${key}"] .txt`).text(item['primary_service_type'] ? item['primary_service_type'] : '-');
                                 }
                                 else {
-                                    $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                                    $(row).find(`[data-value="${key}"] .txt`).text(item[key] != null && item[key] !== '' ? item[key] : '-');
                                 }
                             }
                             else {
-                                $(row).find(`[data-value="${key}"] .txt`).text(item[key].length !== 0 ? item[key] : '-');
+                                $(row).find(`[data-value="${key}"] .txt`).text(item[key] != null && item[key] !== '' ? item[key] : '-');
                                 if ($(row).find('[data-status]').length) {
                                     $(row).find('[data-status]').attr('data-status', item[key]);
                                 }
