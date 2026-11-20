@@ -1833,7 +1833,8 @@ const script = () => {
                         ...(isStagging() ? { 'cookie': 'uat.gprnt.ai' } : {})
                     },
                     success: (data) => {
-                        window.location.href = `/green-supplier?id=${id}`;
+                        // replace (not href) so Back skips this 404 bounce page instead of redirecting forward again
+                        window.location.replace(`/green-supplier?id=${id}`);
                     },
                     error: (xhr, status, error) => {
                         console.error("Lá»—i khi gá»i API:", error);
@@ -1888,7 +1889,7 @@ const script = () => {
                     window.history.replaceState({}, "", newUrl);
                 }
                 else {
-                    window.location.href = '/green-supplier-registry'
+                    window.location.replace('/green-supplier-registry');
                     return;
                 }
                 this.getDetail(pledgeId);
